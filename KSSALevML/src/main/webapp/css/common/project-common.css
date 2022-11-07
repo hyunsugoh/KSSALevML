@@ -1,0 +1,163 @@
+.levml-workspace-project-list-area{
+	padding-top: 10px;
+	position: relative;
+	float:left;
+	width: 340px;
+	height: 850px;
+	margin-right: 1px;
+	background-color: #fff;
+}	
+.levml-va-workspace-model-list-area{
+	position: relative;
+	float: left;
+	width:  calc(100% - 350px);
+	height:  850px;
+	padding-top:  20px;
+	padding-right: 4px;
+	padding-left: 4px;
+	background-color: #e9ecf1; 
+}
+.levml-va-workspace-model-list-header{
+	margin-right: 14px;
+	margin-left: 14px;
+	
+}
+.lev-va-workspace-model-list-title{
+	font-size: 30px;
+	font-weight: normal;
+	float: left;
+	overflow: hidden;
+	max-width: 50%;
+	cursor: default;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #333;
+}
+.levml-va-workspace-model-list-edit{
+	float: right;
+    width: 24px;
+    height: 24px;
+    margin-top: 10px;
+    margin-left: 10px;
+    /* background-image: url(images/more-btn-16.png); */
+    background-repeat: no-repeat;
+    background-position-x: 4px;
+    background-position-y: 4px;
+}
+.levml-va-workspace-model-list-author{
+	font-size: 20px;
+    display: flex;
+    clear: both;
+    padding-top: 14px;
+    padding-bottom:10px;
+    align-items: center;
+}
+.levml-va-workspace-model-list-author > span:nth-child(even){
+	font-size: 20px;
+	color: #9fa1a4;
+}
+.levml-va-workspace-model-list-author > span:nth-child(odd){
+	font-size: 20px;
+	color: #666769;
+}
+.levml-style-editor-toolitem levml-style-s-editor-toolitem{
+	margin-left: 0;
+}
+.levml-va-workspace-model-list-content{
+	position: relative;
+    display: flex;
+    clear: both;
+    height: 700px;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+.ps-container{
+	touch-action: none;
+    overflow: hidden !important;
+}
+.ps-theme-default{
+}
+.levml-va-workspace-model-list-cell {
+    position: relative;
+    width: 33.3%;
+    height: 300px;
+    margin-bottom: 19px;
+}
+.levml-va-workspace-model-list-item {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 5px);
+    margin-right: 14px;
+    margin-left: 14px;
+    margin-bottom: 14px;
+    border: solid 1px #e0e4ea;
+    border-top: solid 4px #acb5cb;
+    background: #fff;
+}
+.levml-va-workspace-model-list-item-header {
+    position: relative;
+    display: flex;
+    height: auto;
+}
+.levml-va-workspace-model-list-item-label {
+    font-size: 22px;
+    font-weight: normal;
+    float: left;
+    overflow: hidden;
+    width: calc(100% - 42px);
+    margin: 11px auto 0 20px;
+    cursor: default;
+    white-space: nowrap;
+    letter-spacing: -.2px;
+    text-overflow: ellipsis;
+}
+.levml-va-workspace-model-list-item-updatetime, .levml-va-workspace-model-list-item-createtime {
+    font-size: 12px;
+    display: flex;
+    float: left;
+    width: calc(100% - 40px);
+    margin-top: 10px;
+    margin-right: 20px;
+    margin-left: 20px;
+    letter-spacing: -.1px;
+}
+.levml-va-workspace-model-list-item-createtime {
+    margin-top: 5px;
+}
+.levml-va-workspace-model-list-item-description {
+    position: relative;
+    float: left;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: calc(100% - 40px);
+    max-height: 128px;
+    margin-top: 26px;
+    margin-right: 20px;
+    margin-bottom: 22px;
+    margin-left: 20px;
+    word-wrap: break-word;
+    flex-grow: 1;
+}
+.levml-va-workspace-model-list-item-open {
+    font-size: 16px;
+    line-height: 50px;
+    position: absolute;
+    top: calc(50% - 25px);
+    left: calc(50% - 70px);
+    display: none;
+    box-sizing: border-box;
+    width: 140px;
+    height: 50px;
+    padding: 0 20px;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+    background: #626fdb;
+}
+.subproject{
+	padding: 10px;
+}
+
+.subprojectBtn{
+	margin: 5px;
+}

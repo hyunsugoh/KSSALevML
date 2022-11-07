@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<!-- SqlSession setup for MyBatis Database Layer -->
+	<!-- OLAP Garak DataMart SqlSession -->
+	<bean id="garakDataSqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="repositoryDataSource" />
+		<property name="configLocation" value="classpath:/levware/sqlmap/mart/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/levware/sqlmap/mart/mappers/*.xml" />
+	</bean>
+	
+	<!-- OLAP Repository SqlSession -->
+	<bean id="olapDataSqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="repositoryDataSource" />
+		<property name="configLocation" value="classpath:/levware/sqlmap/repo/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/levware/sqlmap/repo/mappers/*.xml" />
+	</bean>
+
+	<!-- MapperConfigurer setup for MyBatis Database Layer with @Mapper("deptMapper") in DeptMapper Interface -->
+ 	<bean class="egovframework.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="com.levware.common.mappers.mart" />
+		<property name="sqlSessionFactoryBeanName" value="garakDataSqlSession" />
+	</bean>
+	
+	<bean class="egovframework.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="com.levware.common.mappers.repo" />
+		<property name="sqlSessionFactoryBeanName" value="olapDataSqlSession" />
+	</bean>
+    
+</beans>

@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.RBMapper">
+
+	<!-- Rule 기준코드 속성을 Number 형식으로 비교 시 해당 주코드 정보를 포함한 In-line View를 사용하여 처리 -->
+
+	<!-- Rule 기준 조회 -->
+	<select id="selectRuleComListType1"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM TB_RULE_COM
+		WHERE MCD=#{MCD}
+		AND SCD != 'MCD'
+		<if test='SCD != null and SCD != ""'  >AND SCD = #{SCD}</if> 
+		<if test='ATTR1 != null and ATTR1 != ""'  >AND  ATTR1 = #{ATTR1}</if>
+		<if test='ATTR2 != null and ATTR2 != ""'  >AND  ATTR2 = #{ATTR2}</if>
+		<if test='ATTR3 != null and ATTR3 != ""'  >AND  ATTR3 = #{ATTR3}</if>
+		<if test='ATTR4 != null and ATTR4 != ""'  >AND  ATTR4 = #{ATTR4}</if>
+		<if test='ATTR5 != null and ATTR5 != ""'  >AND  ATTR5 = #{ATTR5}</if>
+		<if test='ATTR6 != null and ATTR6 != ""'  >AND  ATTR6 = #{ATTR6}</if>
+		<if test='ATTR7 != null and ATTR7 != ""'  >AND  ATTR7 = #{ATTR7}</if>
+		<if test='ATTR8 != null and ATTR8 != ""'  >AND  ATTR8 = #{ATTR8}</if>
+		<if test='ATTR9 != null and ATTR9 != ""'  >AND  ATTR9 = #{ATTR9}</if>
+		<if test='ATTR10 != null and ATTR10 != ""'  >AND  ATTR10 = #{ATTR10}</if>
+		<if test='ATTR11 != null and ATTR11 != ""'  >AND  ATTR11 = #{ATTR11}</if>
+		<if test='ATTR12 != null and ATTR12 != ""'  >AND  ATTR12 = #{ATTR12}</if>
+		<if test='ATTR13 != null and ATTR13 != ""'  >AND  ATTR13 = #{ATTR13}</if>
+		<if test='ATTR14 != null and ATTR14 != ""'  >AND  ATTR14 = #{ATTR14}</if>
+		<if test='ATTR15 != null and ATTR15 != ""'  >AND  ATTR15 = #{ATTR15}</if>
+		ORDER BY ORD
+	</select>
+	
+	<select id="selectMaterialList" parameterType="map"  resultType="map">
+		SELECT * FROM TB_MATERIAL
+	</select>
+	
+		
+	<insert id="insertRuleRst"  parameterType="map">
+		INSERT INTO TB_RULE_RST(
+			P_ID,P_NO, P_TYPE,P_IDX, P_SEQ,P_VAL,RMKS,REG_DT,REG_ID,MOD_DT,MOD_ID
+		) 
+		SELECT #{P_ID},#{P_NO},#{P_TYPE},#{P_IDX},
+			 (
+				SELECT COALESCE(MAX(P_SEQ) + 1,1)
+				FROM TB_RULE_RST
+				WHERE P_ID=#{P_ID}
+				AND P_TYPE=#{P_TYPE}
+				AND P_IDX=#{P_IDX}
+			),
+			#{P_VAL},#{RMKS},getdate(),#{USER_ID},getdate(),#{USER_ID}
+	</insert>
+	
+	<insert id="insertRuleRstNote"  parameterType="map">
+		INSERT INTO TB_RULE_RST_NOTE(
+			P_ID,P_NO, P_IDX, SEQ,NOTE,RMKS
+		) 
+		SELECT #{P_ID},#{P_NO},#{P_IDX},
+			 (
+				SELECT COALESCE(MAX(SEQ) + 1,1)
+				FROM TB_RULE_RST_NOTE
+				WHERE P_ID=#{P_ID}
+				AND P_IDX=#{P_IDX}
+			),
+			#{NOTE},#{RMKS}
+	</insert>
+	
+	<insert id="insertRuleRstProc"  parameterType="map">
+		INSERT INTO TB_RULE_RST_PROC(
+			P_ID,P_NO, P_IDX, SEQ,PROC_CONT,RMKS
+		) 
+		SELECT #{P_ID},#{P_NO},#{P_IDX},
+			 (
+				SELECT COALESCE(MAX(SEQ) + 1,1)
+				FROM TB_RULE_RST_NOTE
+				WHERE P_ID=#{P_ID}
+				AND P_IDX=#{P_IDX}
+			),
+			#{PROC_CONT},#{RMKS}
+	</insert>
+	
+	
+	<!-- ==================================== -->
+	<!-- Rule 기준 주코드별 별도 조회                                             -->
+	<!-- ==================================== -->
+	
+	
+	<select id="selectRuleComListA401"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A401'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR3 = (
+			SELECT TOP 1 ATTR3
+			FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A401'
+			    AND SCD != 'MCD' ) A
+			ORDER BY ABS(CAST(ATTR3 AS decimal(20,10)) - COALESCE(#{RPM_MAX},0))
+		)	    
+	</select>
+	
+	<select id="selectRuleComListA501"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A501'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR3 = (
+			SELECT TOP 1 ATTR3
+			FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A501'
+			    AND SCD != 'MCD' ) A
+			ORDER BY ABS(CAST(ATTR3 AS decimal(20,10)) - COALESCE(#{SEAL_SIZE},0))
+		)	    
+	</select>
+	
+	<select id="selectRuleComListA601"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A601'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR3 = (
+			SELECT TOP 1 ATTR3
+			FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A601'
+			    AND SCD != 'MCD' ) A
+			ORDER BY ABS(CAST(ATTR3 AS decimal(20,10)) - COALESCE(#{SEAL_SIZE},0))
+		)	    
+	</select>	
+	
+	<select id="selectRuleComListA701"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A701'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR3 = (
+			SELECT TOP 1 ATTR3
+			FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A701' 
+			    AND SCD != 'MCD' ) A
+			ORDER BY ABS(CAST(ATTR3 AS decimal(20,10)) - COALESCE(#{SEAL_SIZE},0))
+		)	    
+	</select>		
+	
+	<select id="selectRuleComListA801"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM TB_RULE_GRPH_FUNC
+			    WHERE MCD=  'A701'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR3 = (
+			SELECT TOP 1 ATTR3
+			FROM ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'A701'
+			    AND SCD != 'MCD' ) A
+			ORDER BY ABS(CAST(ATTR3 AS decimal(20,10)) - COALESCE(#{SEAL_SIZE},0))
+		)	    
+	</select>		
+	
+	
+	<select id="selectRuleComListB1501" parameterType="map"  resultType="map">
+		SELECT * FROM TB_RULE_COM
+		WHERE MCD=#{MCD}
+		AND SCD != 'MCD'
+		AND ATTR1 IN (
+		<foreach item="P_TYPE" index="index" collection="list" open="" separator="," close="">
+		#{P_TYPE}
+		</foreach>
+		)
+		ORDER BY ORD
+	</select>
+		
+	<select id="selectRuleComListB1901" parameterType="map"  resultType="map">
+		SELECT * 
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B1901'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '0' WHEN ATTR1 is null then '0' else ATTR1 end) AS decimal(20,10)) <= ceiling(#{H2S_CONT})      
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) AS decimal(20,10)) >= ceiling(#{H2S_CONT})
+		]]>
+		ORDER BY ORD
+	</select>
+	
+	<select id="selectRuleComListB11301"  parameterType="map"  resultType="map">
+		SELECT * 
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B11301'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR2='' then '0' WHEN ATTR2 is null then '0' else ATTR2 end) AS decimal(20,10)) <= #{NAOH_CONT}      
+		AND CAST((case when ATTR3='' then '99999' WHEN ATTR3 is null then '99999' else ATTR3 end) AS decimal(20,10)) >= #{NAOH_CONT}
+		AND CAST((case when ATTR4='' then '-99999' WHEN ATTR4 is null then '-99999' else ATTR4 end) AS decimal(20,10)) <= #{TEMP_MAX}
+		AND CAST((case when ATTR5='' then '99999' WHEN ATTR5 is null then '99999' else ATTR5 end) AS decimal(20,10)) >= #{TEMP_MAX}
+		]]>
+		ORDER BY ORD
+	</select>
+	
+	
+	<!-- Rule C3  조회 -->
+	<select id="selectRuleC3"  parameterType="map"  resultType="map">
+		SELECT distinct A.R_NO, A.SEAL_TYPE,  A.SEAL_STD_GB, A.SEAL_GB_TYPE, A.RS_GB, A.PV_CURVE, A.RMKS, 
+		             A.MTRL_CD_M1, A.MTRL_CD_M2, A.MTRL_CD_M3, A.MTRL_CD_M4,
+		             B.SEAL_GB
+		FROM TB_RULE_C3 A left Outer Join TB_RULE_C9 B ON A.R_NO=B.R_NO
+		WHERE 1=1
+		
+		<if test='API682_TYPE != null and API682_TYPE.size() > 0 ' >
+			AND A.SEAL_GB_TYPE IN (
+				<foreach collection="API682_TYPE" item="type" index="index"  separator="," close="">
+				#{type}
+				</foreach>
+			)
+		</if>
+		<if test='API682_RS != null and API682_RS.size() > 0  '  >
+			AND A.RS_GB IN (
+				<foreach collection="API682_RS" item="rs" index="index"  separator="," close="">
+				#{rs}
+				</foreach>
+			)
+		</if>
+		
+		<if test='SEAL_GB_TYPE != null and SEAL_GB_TYPE != ""'  >AND A.SEAL_GB_TYPE = #{SEAL_GB_TYPE}</if> <!--  Type (A,B,C..) -->
+		<if test='RS_GB != null and RS_GB != ""'  >AND A.RS_GB = #{RS_GB}</if> <!--  Rotating / Stationary 구분 -->
+		
+		<!-- 
+			온도 : 온도는 최소값 과 최대값 사이에 걸려야함. 
+		-->
+		<if test='TEMP_NOR != null and TEMP_NOR != ""'  >AND #{TEMP_MIN} BETWEEN COALESCE(A.TEMP_MIN,-9999999999) AND COALESCE(A.TEMP_MAX,9999999999) </if> 		 
+		<if test='TEMP_MAX != null and TEMP_MAX != ""'  >AND #{TEMP_MAX} BETWEEN COALESCE(A.TEMP_MIN,-9999999999) AND COALESCE(A.TEMP_MAX,9999999999) </if>
+		<if test='TEMP_NOR != null and TEMP_NOR != ""'  >AND #{TEMP_NOR} BETWEEN COALESCE(A.TEMP_MIN,-9999999999) AND COALESCE(A.TEMP_MAX,9999999999)  </if>
+		
+		<!-- 압력(씰챔버) -->
+		<if test='SEAL_CHAM_NOR != null and SEAL_CHAM_NOR != ""'  ><![CDATA[AND #{SEAL_CHAM_NOR} <= COALESCE(A.PRESS_OUT_D,9999999999)]]> </if><!-- 압력(씰챔버) -->
+		<if test='SEAL_CHAM_MIN != null and SEAL_CHAM_MIN != ""'  ><![CDATA[AND #{SEAL_CHAM_MIN} <= COALESCE(A.PRESS_OUT_D,9999999999)]]> </if><!-- 압력(씰챔버) -->
+		<if test='SEAL_CHAM_MAX != null and SEAL_CHAM_MAX != ""'  ><![CDATA[AND #{SEAL_CHAM_MAX} <= COALESCE(A.PRESS_OUT_D,9999999999)]]> </if><!-- 압력(씰챔버) -->
+		
+		<!-- 점도 -->
+		<if test='VISC_MIN != null and VISC_MIN != ""'  >
+			AND  #{VISC_MIN} BETWEEN 
+			                                         ( CASE WHEN A.VISCOSITY_MIN_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MIN * #{SPEC_GRAVITY_MIN},-9999999999) 
+			                                           ELSE  COALESCE(A.VISCOSITY_MIN,-9999999999)   END ) 
+			                                         AND  
+			                                         ( CASE WHEN A.VISCOSITY_MAX_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MAX * #{SPEC_GRAVITY_MAX},9999999999) 
+			                                           ELSE  COALESCE(A.VISCOSITY_MAX,9999999999) END )
+		</if>
+		<if test='VISC_MAX != null and VISC_MAX != ""'  >
+			AND #{VISC_MAX} BETWEEN
+			                                    ( CASE WHEN A.VISCOSITY_MIN_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MIN * #{SPEC_GRAVITY_MIN},-9999999999) 
+			                                           ELSE  COALESCE(A.VISCOSITY_MIN,-9999999999)   END ) 
+			                                    AND  
+		                                         ( CASE WHEN A.VISCOSITY_MAX_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MAX * #{SPEC_GRAVITY_MAX},9999999999) 
+		                                           ELSE  COALESCE(A.VISCOSITY_MAX,9999999999) END )    
+		</if>
+		<if test='VISC_NOR != null and VISC_NOR != ""'  >
+		    AND #{VISC_NOR} BETWEEN
+			                                    ( CASE WHEN A.VISCOSITY_MIN_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MIN * #{SPEC_GRAVITY_MIN},-9999999999) 
+			                                           ELSE  COALESCE(A.VISCOSITY_MIN,-9999999999)   END ) 
+			                                    AND  
+		                                         ( CASE WHEN A.VISCOSITY_MAX_UNIT = 'CST' THEN COALESCE(A.VISCOSITY_MAX * #{SPEC_GRAVITY_MAX},9999999999) 
+		                                           ELSE  COALESCE(A.VISCOSITY_MAX,9999999999) END )  
+		</if>
+		
+		<!-- 비중 -->
+		<if test='SPEC_GRAVITY_MIN != null and SPEC_GRAVITY_MIN != ""'  >AND #{SPEC_GRAVITY_MIN} BETWEEN  COALESCE(A.SG_MIN,-9999999999) AND COALESCE(A.SG_MAX,9999999999) </if>
+		<if test='SPEC_GRAVITY_MAX != null and SPEC_GRAVITY_MAX != ""'  >AND #{SPEC_GRAVITY_MAX} BETWEEN  COALESCE(A.SG_MIN,-9999999999) AND COALESCE(A.SG_MAX,9999999999) </if>
+		<if test='SPEC_GRAVITY_NOR != null and SPEC_GRAVITY_NOR != ""'  >AND #{SPEC_GRAVITY_NOR} BETWEEN  COALESCE(A.SG_MIN,-9999999999) AND COALESCE(A.SG_MAX,9999999999) </if>
+		
+		<!-- Shaft Size -->
+		<if test='SHAFT_SIZE != null and SHAFT_SIZE != ""'  >AND #{SHAFT_SIZE} BETWEEN COALESCE(A.SHAFT_SIZE_MIN,-9999999999) AND COALESCE(A.SHAFT_SIZE_MAX,9999999999) </if>
+		
+		<!-- Shaft Speed (RPM) -->
+		<if test='RPM_MIN != null and RPM_MIN != ""'  >AND #{RPM_MIN} BETWEEN COALESCE(A.SHAFT_SPEED_1_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_1_MAX,9999999999) </if>
+		<if test='RPM_MAX != null and RPM_MAX != ""'  >AND #{RPM_MAX} BETWEEN COALESCE(A.SHAFT_SPEED_1_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_1_MAX,9999999999) </if>
+		<if test='RPM_NOR != null and RPM_NOR != ""'  >AND #{RPM_NOR} BETWEEN COALESCE(A.SHAFT_SPEED_1_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_1_MAX,9999999999) </if>
+		
+		<!-- Shaft Speed (선속도) -->
+		<if test='L_SPD_MIN != null and L_SPD_MIN != ""'  >AND #{L_SPD_MIN} BETWEEN COALESCE(A.SHAFT_SPEED_2_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_2_MAX,9999999999) </if>
+		<if test='L_SPD_MAX != null and L_SPD_MAX != ""'  >AND #{L_SPD_MAX} BETWEEN COALESCE(A.SHAFT_SPEED_2_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_2_MAX,9999999999) </if>
+		<if test='L_SPD_NOR != null and L_SPD_NOR != ""'  >AND #{L_SPD_NOR} BETWEEN COALESCE(A.SHAFT_SPEED_2_MIN,-9999999999) AND COALESCE(A.SHAFT_SPEED_2_MAX,9999999999) </if>
+		
+		<!-- ===================== -->
+		<!--	Rule 기준 추가                             -->
+		<!-- ===================== -->
+		
+		<!-- Seal Size --> 
+		<if test='SEAL_SIZE != null and SEAL_SIZE != ""'  >AND #{SEAL_SIZE} BETWEEN COALESCE(A.SEAL_SIZE_MIN,-9999999999) AND COALESCE(A.SEAL_SIZE_MAX,9999999999) </if>
+		
+		<!-- if test='SOLID_CONT != null and SOLID_CONT  != ""'  ><![CDATA[AND (#{SOLID_CONT} / 10000) <= COALESCE(SOLID,9999999999) ]]></if -->
+		<!-- Solid -->
+		<if test='SLURRY_SEAL_YN != null and SLURRY_SEAL_YN == "Y" '> <!--  Solid Seal 적용조건 -->
+			AND COALESCE(A.SOLID,0) > 0 
+			AND <![CDATA[  (#{SOLID_CONT} / 10000) <= COALESCE(A.SOLID,9999999999) ]]>
+		</if>
+		
+	</select>
+	
+	
+	<!-- [B3]API 682 기준  조회 -->
+	<select id="selectRuleComListB301"  parameterType="map"  resultType="map">
+	    SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B301'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[	  
+		AND (  (ATTR6='이상' and  CAST((case when ATTR8='' then '-99999' WHEN ATTR8 is null then '-99999' else ATTR8 end) as decimal(20,10)) <= #{TEMP_MIN}) 
+		                   or (ATTR6='초과' and CAST((case when ATTR8='' then '-99999' WHEN ATTR8 is null then '-99999' else ATTR8 end) as decimal(20,10)) <  #{TEMP_MIN} )  )
+		AND (  (ATTR7='미만' and   CAST((case when ATTR9='' then '99999' WHEN ATTR9 is null then '99999' else ATTR9 end) as decimal(20,10)) > #{TEMP_MAX}) 
+		                   or (ATTR7='이하' and  CAST((case when ATTR9='' then '99999' WHEN ATTR9 is null then '99999' else ATTR9 end) as decimal(20,10)) >= #{TEMP_MAX} )  )
+		AND (  (ATTR10='이상' and   CAST((case when ATTR12='' then '0' WHEN ATTR12 is null then '0' else ATTR12 end) as decimal(20,10)) <= #{SEAL_CHAM_MIN}) 
+		                   or (ATTR10='초과' and  CAST((case when ATTR12='' then '0' WHEN ATTR12 is null then '0' else ATTR12 end) as decimal(20,10)) < #{SEAL_CHAM_MIN} )  )
+		AND (  (ATTR11='미만' and   CAST((case when ATTR13='' then '99999' WHEN ATTR13 is null then '99999' else ATTR13 end) as decimal(20,10)) >  #{SEAL_CHAM_MAX} ) 
+		                   or (ATTR11='이하' and  CAST((case when ATTR13='' then '99999' WHEN ATTR13 is null then '99999' else ATTR13 end) as decimal(20,10)) >=  #{SEAL_CHAM_MAX} )  )
+		AND (  CAST((case when ATTR14='' then '0' WHEN ATTR14 is null then '0' else ATTR14 end) as decimal(20,10)) <= #{VAP_PRES_MIN})
+		AND (  CAST((case when ATTR15='' then '99999' WHEN ATTR15 is null then '99999' else ATTR15 end) as decimal(20,10)) > #{VAP_PRES_MAX})
+		]]>
+
+	</select>
+	
+	<!-- [B4] Hot Water -->
+	<select id="selectRuleComListB401"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B401'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '-99999' WHEN ATTR1 is null then '-99999' else ATTR1 end) as decimal(20,10)) < CEILING(#{TEMP_MAX})
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) as decimal(20,10)) >= CEILING(#{TEMP_MAX})
+		]]>
+	</select>
+	
+	
+	<!-- [B4] Press Limit -->
+	<select id="selectRuleComListB403"  parameterType="map"  resultType="map">
+		SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B403'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR1 = #{ATTR1}
+		<![CDATA[
+		AND CAST((case when ATTR2='' then '0' WHEN ATTR2 is null then '0' else ATTR2 end) as decimal(20,10)) < #{SHAFT_SIZE}
+		AND CAST((case when ATTR3='' then '99999' WHEN ATTR3 is null then '99999' else ATTR3 end) as decimal(20,10)) >= #{SHAFT_SIZE}
+		]]>
+	</select>
+	
+	
+	<select id="selectRuleComListB1801" parameterType="map"  resultType="map">
+		SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B1801'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '-99999' WHEN ATTR1 is null then '-99999' else ATTR1 end) as decimal(20,10)) <= CEILING(#{TEMP_MIN})
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) as decimal(20,10)) >= CEILING(#{TEMP_MAX})
+		AND ATTR3 = #{EQUIPMENT_TYPE}
+		AND CAST((case when ATTR4='' then '0' WHEN ATTR4 is null then '0' else ATTR4 end) as decimal(20,10)) <= CEILING(#{SEAL_CHAM_MIN})
+		AND CAST((case when ATTR5='' then '99999' WHEN ATTR5 is null then '99999' else ATTR5 end) as decimal(20,10)) >= CEILING(#{SEAL_CHAM_MAX})
+		]]>	    
+	</select>
+	
+	
+	<select id="selectRuleComListB1101" parameterType="map"  resultType="map">
+		SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B1101'
+			    AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '-99999' WHEN ATTR1 is null then '-99999' else ATTR1 end) as decimal(20,10)) <= CEILING(#{TEMP_MIN})
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) as decimal(20,10)) >= CEILING(#{TEMP_MAX})
+		AND ATTR3 = #{EQUIPMENT_TYPE}
+		AND CAST((case when ATTR4='' then '0' WHEN ATTR4 is null then '0' else ATTR4 end) as decimal(20,10)) <= CEILING(#{SEAL_CHAM_MIN})
+		AND CAST((case when ATTR5='' then '99999' WHEN ATTR5 is null then '99999' else ATTR5 end) as decimal(20,10)) >= CEILING(#{SEAL_CHAM_MAX})
+		]]>	    	    
+	</select>
+	
+	
+	<select id="selectRuleComListB11101" parameterType="map"  resultType="map">
+		SELECT *
+		FROM  ( SELECT * FROM TB_RULE_COM
+					   WHERE MCD=  'B11101'
+					   AND SCD != 'MCD'
+					   AND ATTR2 != 'N'  ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR3='' then '0' WHEN ATTR3 is null then '0' else ATTR3 end) AS decimal(20,10)) <= ceiling(COALESCE(#{H2S_CONT},0)  )      
+		AND CAST((case when ATTR4='' then '99999' WHEN ATTR4 is null then '99999' else ATTR4 end) AS decimal(20,10)) > ceiling(COALESCE(#{H2S_CONT},0) )
+		]]>			    
+	</select>
+	
+	<select id="selectRuleComListB11401" parameterType="map"  resultType="map">
+		SELECT *
+		FROM  ( SELECT * FROM TB_RULE_COM
+					   WHERE MCD=  'B11401'
+					   AND SCD != 'MCD') A
+		WHERE 1=1
+		<![CDATA[
+		AND (  (ATTR1='이상' and  CAST((case when ATTR2='' then '0' WHEN ATTR2 is null then '0' else ATTR2 end) as decimal(20,10)) <= #{WATER_CONT}) 
+		           or  (ATTR1='초과' and  CAST((case when ATTR2='' then '0' WHEN ATTR2 is null then '0' else ATTR2 end) as decimal(20,10)) < #{WATER_CONT}) )
+		AND (  (ATTR3='이하' and  CAST((case when ATTR4='' then '99999' WHEN ATTR4 is null then '99999' else ATTR4 end) as decimal(20,10)) >= #{WATER_CONT}) 
+                   or (ATTR3='미만' and CAST((case when ATTR4='' then '99999' WHEN ATTR4 is null then '99999' else ATTR4 end) as decimal(20,10)) >  #{WATER_CONT} )  )
+        ]]>
+	</select>
+	
+	
+	
+	<select id="selectRuleComListC601" parameterType="map"  resultType="map">
+		SELECT *
+		FROM  ( SELECT * FROM TB_RULE_COM
+					   WHERE MCD=  'C601'
+					   AND SCD != 'MCD') A
+		WHERE ATTR1 = #{ATTR1}
+	</select>
+	
+	<select id="selectRuleComListC7801" parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+					  WHERE MCD=  'C7801'
+					  AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '0' WHEN ATTR1 is null then '0' else ATTR1 end) AS decimal(20,10)) < COALESCE(#{H2SO4_CONT},0.0)      
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) AS decimal(20,10)) >= COALESCE(#{H2SO4_CONT},0.0)      
+		AND CAST((case when ATTR3='' then '0' WHEN ATTR3 is null then '0' else ATTR3 end) AS decimal(20,10)) <= #{TEMP_MAX}
+		AND CAST((case when ATTR4='' then '99999' WHEN ATTR4 is null then '99999' else ATTR4 end) AS decimal(20,10)) >= #{TEMP_MAX}
+		]]>
+	</select>
+	
+	<select id="selectRuleComListC7802" parameterType="map"  resultType="map">
+		SELECT *
+		FROM ( SELECT * FROM TB_RULE_COM
+					  WHERE MCD=  'C7802'
+					  AND SCD != 'MCD' ) A
+		WHERE 1=1
+		<![CDATA[
+		AND CAST((case when ATTR1='' then '0' WHEN ATTR1 is null then '0' else ATTR1 end) AS decimal(20,10)) <= COALESCE(#{H2SO4_CONT},0.0)      
+		AND CAST((case when ATTR2='' then '99999' WHEN ATTR2 is null then '99999' else ATTR2 end) AS decimal(20,10)) >= COALESCE(#{H2SO4_CONT},0.0)
+		AND CAST((case when ATTR3='' then '0' WHEN ATTR3 is null then '0' else ATTR3 end) AS decimal(20,10)) < #{TEMP_MAX}
+		AND CAST((case when ATTR4='' then '99999' WHEN ATTR4 is null then '99999' else ATTR4 end) AS decimal(20,10)) >= #{TEMP_MAX}
+		]]>
+	</select>
+	
+	<select id="selectRuleComListB801" parameterType="map"  resultType="map">
+		SELECT *
+		FROM 
+			  ( SELECT * FROM TB_RULE_COM
+			    WHERE MCD=  'B801'
+			    AND SCD != 'MCD' ) A
+		WHERE ATTR1 = #{ATTR1}
+		<![CDATA[
+		AND (  (ATTR7='이상' and  CAST((case when ATTR8='' then '-99999' WHEN ATTR8 is null then '-99999' else ATTR8 end) as decimal(20,10)) <= #{TEMP_MIN}) 
+                   or (ATTR7='초과' and CAST((case when ATTR8='' then '-99999' WHEN ATTR8 is null then '-99999' else ATTR8 end) as decimal(20,10)) <  #{TEMP_MIN} )  )
+		AND (  (ATTR9='이하' and  CAST((case when ATTR10='' then '99999' WHEN ATTR10 is null then '99999' else ATTR10 end) as decimal(20,10)) >= #{TEMP_MAX}) 
+                   or (ATTR9='미만' and CAST((case when ATTR10='' then '99999' WHEN ATTR10 is null then '99999' else ATTR10 end) as decimal(20,10)) >  #{TEMP_MAX} )  )
+                   
+        AND  CAST((case when ATTR11='' then '0' WHEN ATTR11 is null then '0' else ATTR11 end) as decimal(20,10)) <=  #{SEAL_CHAM_MIN}
+		AND  CAST((case when ATTR12='' then '99999' WHEN ATTR12 is null then '99999' else ATTR12 end) as decimal(20,10)) >=  #{SEAL_CHAM_MAX}
+		
+		AND  CAST((case when ATTR13='' then '0' WHEN ATTR13 is null then '0' else ATTR13 end) as decimal(20,10)) <=  #{SPEC_GRAVITY_MIN}
+		AND  CAST((case when ATTR14='' then '99999' WHEN ATTR14 is null then '99999' else ATTR14 end) as decimal(20,10)) >=  #{SPEC_GRAVITY_MAX}
+		
+		AND  CAST((case when ATTR15='' then '0' WHEN ATTR15 is null then '0' else ATTR15 end) as decimal(20,10)) <=  #{VAP_PRES_MIN}
+		AND  CAST((case when ATTR16='' then '99999' WHEN ATTR16 is null then '99999' else ATTR16 end) as decimal(20,10)) >  #{VAP_PRES_MAX}
+		]]>	    	    
+	</select>
+	
+	
+	<select id="selectRuleC9" parameterType="map"  resultType="map">
+		SELECT *
+		FROM TB_RULE_C9
+		WHERE R_NO = #{R_NO}
+	</select>
+	
+	
+	<select id="selectRuleC1" parameterType="map"  resultType="map">
+		SELECT GRADE
+		FROM TB_RULE_C1
+		WHERE UPPER(PRODUCT) = #{PRODUCT}
+		AND MTRL_TYPE = #{MTRL_TYPE}
+		<if test='MTRL_CD != null and MTRL_CD != ""'  >
+		AND MTRL_CD = #{MTRL_CD}
+		</if>
+		AND CAST(COALESCE(#{CONT},'0') AS decimal(20,10)) BETWEEN COALESCE(CONT_FR,0) AND COALESCE(CONT_TO,100)  
+		AND CAST(COALESCE(#{TEMP},'-99999') AS decimal(20,10)) BETWEEN COALESCE(TEMP_FR,-99999) AND COALESCE(CONT_TO,99999)
+	</select>
+	
+	
+	<select id="selectRuleGraph" parameterType="map"  resultType="map">
+		SELECT * 
+		FROM TB_RULE_GRPH
+		WHERE SEAL_TYPE=#{SEAL_TYPE}
+		AND MTRL_CD_M2=#{MTRL_CD_M2}
+		AND MTRL_CD_M4=#{MTRL_CD_M4}
+		AND SPEED= (
+			SELECT TOP 1 SPEED
+			FROM TB_RULE_GRPH
+			WHERE SEAL_TYPE=#{SEAL_TYPE}
+			AND MTRL_CD_M2=#{MTRL_CD_M2}
+			AND MTRL_CD_M4=#{MTRL_CD_M4}
+			<if test='PRODUCT_GRP != null and PRODUCT_GRP != ""'  >AND PRODUCT_GRP = #{PRODUCT_GRP}</if>
+			<if test='BELLOWS_MTRL != null and BELLOWS_MTRL != ""'  >AND BELLOWS_MTRL = #{BELLOWS_MTRL}</if>
+			<if test='ARRANGEMENT != null and ARRANGEMENT != ""'  >AND ARRANGEMENT = #{ARRANGEMENT}</if>
+			<if test='SEAL_SIZE != null and SEAL_SIZE != ""'  >AND #{SEAL_SIZE_FR} BETWEEN SEAL_SIZE_FR AND SEAL_SIZE_TO</if>
+			<if test='TEMP != null and TEMP != ""'  >AND #{TEMP} BETWEEN TEMP_FR AND TEMP_TO</if>
+			ORDER BY ABS(SPEED - COALESCE(#{SPEED},0))
+		)
+		<if test='PRODUCT_GRP != null and PRODUCT_GRP != ""'  >AND PRODUCT_GRP = #{PRODUCT_GRP}</if>
+		<if test='BELLOWS_MTRL != null and BELLOWS_MTRL != ""'  >AND BELLOWS_MTRL = #{BELLOWS_MTRL}</if>
+		<if test='ARRANGEMENT != null and ARRANGEMENT != ""'  >AND ARRANGEMENT = #{ARRANGEMENT}</if>
+		<if test='SEAL_SIZE != null and SEAL_SIZE != ""'  >AND #{SEAL_SIZE_FR} BETWEEN SEAL_SIZE_FR AND SEAL_SIZE_TO</if>
+		<if test='TEMP != null and TEMP != ""'  >AND #{TEMP} BETWEEN TEMP_FR AND TEMP_TO</if>
+	</select>
+	
+	<select id="selectRuleGraphFunc" parameterType="map"  resultType="map">
+		SELECT FUNC
+		FROM TB_RULE_GRPH_FUNC
+		WHERE GRAPH_NO = #{GRAPH_NO}
+		AND CURV_NO = #{CURV_NO}
+		AND CAST(COALESCE(#{VAL},'0') AS decimal(20,10))  BETWEEN VAL_FR AND VAL_TO
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- test -->
+	<update id="setTest1Save"  parameterType="map">
+		INSERT INTO TB_RULE_COM (MCD,SCD,CD_NM)
+		VALUES(#{MCD},#{SCD},#{CD_NM})
+	</update>
+
+	
+	
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.mart.MartUserMapper">
+
+
+	<select id="getUnitDyValue" parameterType="String" resultType="hashmap">
+	
+		SELECT * FROM (
+	    	SELECT ${targetColName} FROM ${tbName} WHERE ${uCode} <![CDATA[ <=]]> #{value} ORDER BY ${targetColName} DESC
+		) WHERE ROWNUM=1
+	
+	</select>
+	
+
+
+	<select id="getSelectGridData" parameterType="SelectObjVO" resultType="hashmap">
+		SELECT 
+		<foreach item="detail" collection="detailInfo" separator=",">
+			<choose>
+				<when test="detail.calcFunc != null and !detail.calcFunc.equals('')">
+					${detail.calcFunc}(${detail.tableName}.${detail.colName}) AS ${detail.alias}
+				</when>
+				
+				<when test="detail.calcFunc == null or detail.calcFunc.equals('')">
+					${detail.tableName}.${detail.colName} AS ${detail.alias}
+				</when>
+			</choose>
+			
+		</foreach>
+		FROM
+			${tbName01}
+		<if test="tbName02 != null and tbName02 != ''">
+			, ${tbName02}
+		</if>
+		<where>
+			<if test="relationInfo != null and relationInfo != ''">
+				${relationInfo}  
+			</if>
+			
+			<if test="standardDateCol != null and standardDateCol != '' and startYearStr != null and startYearStr != ''">
+				AND ${standardDateCol} &gt;= TO_CHAR(TO_DATE(#{startYearStr}||#{startMonthNDateStr},'YYYYMMDD'), 'YYYYMMDD') AND ${standardDateCol} &lt;= TO_CHAR(TO_DATE(#{endYearStr}||#{endMonthNDateStr},'YYYYMMDD'), 'YYYYMMDD')
+			</if>
+			
+			<if test="condition != null and condition.size() > 0">
+				<foreach item="cond" collection="condition" open="AND" separator="AND">
+					<choose>
+						<when test="cond.unitOption != null">
+							${cond.tableName}.${cond.columnName} ${cond.operSym} ${cond.value}
+						</when>
+						<when test="cond.unitOption == null">
+							${cond.tableName}.${cond.columnName} ${cond.operSym} #{cond.value}
+						</when>
+					</choose>
+					
+				</foreach>
+			</if>
+		</where>
+		<if test="isExistGroupFunc">
+			<foreach item="grup" collection="notGroupCol" open="GROUP BY" separator=",">
+				${grup.tableName}.${grup.colName}
+			</foreach>
+		</if>
+		
+		<if test="orderby != null and orderby.size() > 0">
+			<foreach item="od" collection="orderby" separator="," open="ORDER BY">
+				
+				<choose>
+					<when test="od.calcFunc != null and !od.calcFunc.equals('')">
+						${od.calcFunc}(${od.tableName}.${od.columnName}) ${od.value}
+					</when>
+					
+					<when test="od.calcFunc == null or od.calcFunc.equals('')">
+						${od.tableName}.${od.columnName} ${od.value}
+					</when>
+				</choose>
+			</foreach>
+		</if>
+	
+	</select>
+</mapper>
+
+
+
+

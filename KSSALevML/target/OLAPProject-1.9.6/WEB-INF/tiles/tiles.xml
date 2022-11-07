@@ -1,0 +1,66 @@
+<!DOCTYPE tiles-definitions PUBLIC
+  "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+  "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+ 
+<tiles-definitions>
+
+	<!-- Base : 일반유저화면 -->
+	<definition name="base" template="/WEB-INF/jsp/layout/template.jsp">
+	    <put-attribute name="nav"   value="/WEB-INF/jsp/layout/nav.jsp" />
+	    <put-attribute name="header" value="/WEB-INF/jsp/layout/header.jsp" />
+	    <put-attribute name="footer" value="/WEB-INF/jsp/layout/footer.jsp" />
+	</definition>
+	
+	<!--  Base : Left Menu Type -->
+	<definition name="base_leftMenu" template="/WEB-INF/jsp/layout/template2.jsp">
+	    <put-attribute name="nav"   value="/WEB-INF/jsp/layout/nav.jsp" />
+	    <put-attribute name="header" value="/WEB-INF/jsp/layout/header.jsp" />
+	    <put-attribute name="footer" value="/WEB-INF/jsp/layout/footer.jsp" />
+	</definition>
+	
+	<!--  Base : Left Menu 2 Type -->
+	<definition name="base_leftMenu2" template="/WEB-INF/jsp/layout/template4.jsp">
+	    <put-attribute name="nav"   value="/WEB-INF/jsp/layout/nav.jsp" />
+	    <put-attribute name="header" value="/WEB-INF/jsp/layout/header.jsp" />
+	    <put-attribute name="footer" value="/WEB-INF/jsp/layout/footer.jsp" />
+	</definition>
+	
+	<!-- Base : iframe -->
+	<definition name="iframe" template="/WEB-INF/jsp/layout/template3.jsp">
+	    <put-attribute name="header" value="/WEB-INF/jsp/layout/header.jsp" />
+	</definition>	
+	
+	<!--  Base : Pop Up -->
+	<definition name="base_popUp" template="/WEB-INF/jsp/layout/template_popup.jsp">
+	    <put-attribute name="header" value="/WEB-INF/jsp/layout/header.jsp" />
+	    <put-attribute name="footer" value="/WEB-INF/jsp/layout/footer.jsp" />
+	</definition>
+ 
+ 	<definition name="user/*" extends="base">
+         <put-attribute name="body" value="/WEB-INF/jsp/user/{1}.jsp" />
+     </definition>
+ 
+ 	<definition name="admin/*" extends="base_leftMenu">
+         <put-attribute name="body" value="/WEB-INF/jsp/admin/{1}.jsp" />
+         <put-attribute name="leftNav" value="/WEB-INF/jsp/layout/adminLeftMenu.jsp" />
+     </definition>
+     
+      <definition name="ml/*" extends="base_leftMenu">
+         <put-attribute name="body" value="/WEB-INF/jsp/ml/{1}.jsp" />
+         <put-attribute name="leftNav" value="/WEB-INF/jsp/layout/mlLeftMenu.jsp" />
+     </definition>
+     
+     <definition name="ml/pop/*" extends="base_popUp">
+         <put-attribute name="body" value="/WEB-INF/jsp/ml/{1}.jsp" />
+     </definition>
+ 
+      <definition name="mliframe/*/*" extends="iframe">
+         <put-attribute name="body" value="/WEB-INF/jsp/mliframe/{1}/{2}.jsp" />
+     </definition>
+     
+     <definition name="project/*" extends="base">
+         <put-attribute name="body" value="/WEB-INF/jsp/project/{1}.jsp" />
+     </definition>
+        
+</tiles-definitions>
+

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ID GEN 서비스 설정관리는 전자정부표준프레임워크 실행환경에서 제공하는 서비스로서 DB TABLE 상의 유일한 Key 를 관리하기 위한 방법으로 이용된다.  -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+</beans>

@@ -1,0 +1,1498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.AdminMapper">
+
+
+	<!-- Result Map -->
+	<resultMap type="AdminObjectListVO" id="AdminObjectListVOMap">
+		<result property="table_name" column="TABLE_NAME" />
+		<result property="obj_name" column="OBJ_NAME" />
+		<result property="obj_desc" column="OBJ_DESC" />
+		<result property="activ_yn" column="ACTIV_YN" />
+
+	</resultMap>
+
+
+	<select id="getAdminObjectList" parameterType="map"
+		resultMap="AdminObjectListVOMap">
+		SELECT TABLE_NAME,OBJ_NAME,OBJ_DESC,ACTIV_YN
+		FROM TB_OBJECT
+		ORDER BY CASE WHEN OBJ_NAME IS NULL THEN 1 ELSE 0 END ASC, OBJ_NAME ASC
+	</select>
+
+	<!-- 코드관리 Result Map 작성자 박수연 -->
+	<resultMap type="CodeManagementVO" id="CodeManagementVOMap">
+		<result property="qryConCd" column="QRY_CON_CD" />
+		<result property="qryConCdNm" column="QRY_CON_CD_NM" />
+		<result property="operSym" column="OPER_SYM" />
+		<result property="qryExample" column="QRY_EXAMPLE" />
+	</resultMap>
+	<!-- 코드관리 select 작성자 박수연 -->
+	<select id="getCodeManagementList" resultMap="CodeManagementVOMap">
+		SELECT QRY_CON_CD,
+		QRY_CON_CD_NM, OPER_SYM, CREATE_TM, CREATE_DT,QRY_EXAMPLE
+		FROM
+		TB_QRY_CON_CD ORDER BY CREATE_DT DESC, CREATE_TM DESC, QRY_CON_CD ASC
+	</select>
+	<!-- 코드관리 insert 작성자 박수연 -->
+	<insert id="insertCodeManagement" parameterType="CodeManagementVO">
+		INSERT INTO
+		TB_QRY_CON_CD(QRY_CON_CD,QRY_CON_CD_NM,OPER_SYM,QRY_EXAMPLE,CREATE_ID)
+		VALUES
+		(#{qryConCd},#{qryConCdNm},#{operSym},#{qryExample},#{createId})
+	</insert>
+	<!-- 코드관리 delete 작성자 박수연 -->
+	<delete id="deleteCodeManagement" parameterType="java.util.List">
+		DELETE FROM TB_QRY_CON_CD
+		WHERE QRY_CON_CD IN
+		<foreach collection="list" item="item" index="index" open="("
+			close=")" separator=",">
+			#{item,jdbcType=VARCHAR}
+		</foreach>
+	</delete>
+
+	<delete id="setAdminObjectDelete" parameterType="String">
+		<![CDATA[
+			DELETE FROM TB_OBJECT
+			WHERE  TABLE_NAME = #{table_name}
+		]]>
+	</delete>
+
+	<update id="setAdminObjectActive" parameterType="map">
+
+		UPDATE TB_OBJECT
+
+		<if test='activ_yn == "N"'>
+			SET ACTIV_YN = 'Y'
+		</if>
+		<if test='activ_yn == "Y"'>
+			SET ACTIV_YN = 'N'
+		</if>
+		,
+		UPDATE_ID = #{ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+
+		WHERE TABLE_NAME = #{table_name}
+
+	</update>
+
+	<!-- 객체관리 insert 작성자 조형욱 -->
+	<insert id="setAdminObjectInsert">
+		INSERT INTO
+		TB_OBJECT(TABLE_NAME,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM, ACTIV_YN)
+		VALUES
+		(#{object_name},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108),  'N')
+	</insert>
+
+	<!-- repo에서 테이블 리스트 가져오기 작성자 조형욱 -->
+	<select id="getAdminObjectTableList" resultType="map">
+		select
+		table_name from TB_OBJECT
+
+	</select>
+	<!-- 객체 관리 업데이트 작성자 조형욱 -->
+	<update id="setAdminObjectUpdate" parameterType="map">
+
+		UPDATE TB_OBJECT
+
+
+		SET OBJ_NAME = #{obj_name},
+
+		OBJ_DESC = #{obj_desc},
+
+		UPDATE_ID = #{ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+
+		WHERE TABLE_NAME =
+		#{table_name}
+
+	</update>
+
+
+	<!-- 객체 정보 관리 리스트 작성자 조형욱 -->
+	<select id="getAdminObjectInfoList" parameterType="String"
+		resultType="map">
+		SELECT
+		A.TABLE_NAME TABLE_NAME,A.COL_NAME COL_NAME
+		,A.OBJINFO_NAME
+		OBJINFO_NAME,A.OBJINFO_DESC
+		OBJINFO_DESC,A.PK_GUBUN
+		PK_GUBUN,A.DATA_TYPE DATA_TYPE
+		,A.STAND_DATE STAND_DATE
+		,A.VIEW_DURATION_UNIT VIEW_DURATION_UNIT
+		,A.VIEW_DURATION_NUM
+		VIEW_DURATION_NUM
+		,A.SEQ SEQ
+		,A.DISPLAY_YN DISPLAY_YN
+		,A.CALC_FUNC_YN CALC_FUNC_YN
+
+		FROM
+		TB_OBJINFO A
+		WHERE A.TABLE_NAME =
+		#{table_name}
+		ORDER BY
+		CONVERT(INT, SEQ)
+	</select>
+
+
+
+	<!-- 객체 정보 활성화 채크 작성자 조형욱 -->
+	<select id="getAdminObjectActiveCheck1" parameterType="String"
+		resultType="map">
+		SELECT OBJ_NAME FROM TB_OBJECT
+		WHERE table_name =
+		#{table_name}
+	</select>
+
+
+	<!-- 객체 정보 활성화 채크 작성자 조형욱 -->
+	<select id="getAdminObjectActiveCheck2" parameterType="String"
+		resultType="map">
+		SELECT TABLE_NAME FROM TB_OBJINFO
+		WHERE table_name =
+		#{table_name}
+	</select>
+
+	<!-- 객체 정보 관리 insert 작성자 조형욱 -->
+	<insert id="setAdminObjectInfoInsert" parameterType="map">
+		INSERT INTO
+		TB_OBJINFO(TABLE_NAME,COL_NAME,OBJINFO_NAME,OBJINFO_DESC,DATA_TYPE,PK_GUBUN,STAND_DATE,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM,VIEW_DURATION_UNIT,VIEW_DURATION_NUM,SEQ,DISPLAY_YN,CALC_FUNC_YN)
+		VALUES
+		(#{TABLE_NAME},#{COLUMN_NAME},#{OBJINFO_NAME},#{OBJINFO_DESC},#{DATA_TYPE},#{PK_GUBUN},#{STAND_DATE},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108),#{VIEW_DURATION_UNIT},#{VIEW_DURATION_NUM},#{SEQ},#{DISPLAY_YN},#{CALC_FUNC_YN})
+	</insert>
+
+
+<!-- 객체 정보 관리 업데이트 작성자 조형욱 -->
+	<update id="setAdminObjectInfoUpdate" parameterType="map">
+
+		UPDATE
+		TB_OBJINFO
+
+
+		SET OBJINFO_NAME = #{OBJINFO_NAME},
+
+		OBJINFO_DESC =
+		#{OBJINFO_DESC},
+
+		DATA_TYPE = #{DATA_TYPE},
+
+		PK_GUBUN = #{PK_GUBUN},
+
+		STAND_DATE = #{STAND_DATE},
+
+		UPDATE_ID = #{ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108),
+
+		VIEW_DURATION_UNIT = #{VIEW_DURATION_UNIT}
+
+		,VIEW_DURATION_NUM = #{VIEW_DURATION_NUM}
+        ,SEQ = #{SEQ}
+
+		,DISPLAY_YN = #{DISPLAY_YN}
+
+		,CALC_FUNC_YN = #{CALC_FUNC_YN}
+
+		WHERE TABLE_NAME = #{TABLE_NAME}
+
+		AND
+		COL_NAME = #{COL_NAME}
+
+	</update>
+
+
+
+	<!-- 객체 정보 관리 삭제 작성자 조형욱 -->
+	<delete id="setAdminObjectInfoDelete" parameterType="String">
+
+		DELETE FROM
+		TB_OBJINFO WHERE TABLE_NAME = #{TABLE_NAME} AND COL_NAME =
+		#{COL_NAME}
+
+	</delete>
+
+	<!-- 객체정보관리 기준일자 체크 작성자 조형욱 -->
+	<select id="getAdminObjectInfoCheckDate" parameterType="String"
+		resultType="map">
+
+		SELECT
+		COL_NAME,STAND_DATE
+		FROM
+		TB_OBJINFO
+		WHERE TABLE_NAME =
+		#{TABLE_NAME}
+
+	</select>
+
+
+	<!-- 객체 관계 관리 리스트(기준 테이블) 작성자 조형욱 -->
+	<select id="getAdminObjectRelStand" resultType="map">
+		SELECT
+		TABLE_NAME,
+		OBJ_NAME
+		FROM TB_OBJECT
+
+	</select>
+
+
+	<!-- 객체 관계 관리 리스트(연결 테이블) 작성자 조형욱 (오라클 쿼리)-->
+	<select id="getAdminObjectRelConn" parameterType="String"
+		resultType="map">
+
+		SELECT C.STAND STAND,C.TABLE_NAME TABLE_NAME,C.OBJ_NAME
+		OBJ_NAME,D.CONN_TABLE
+		CONN_TABLE from
+		( SELECT
+		B.TABLE_NAME STAND ,
+		A.TABLE_NAME TABLE_NAME,A.OBJ_NAME OBJ_NAME
+		FROM TB_OBJECT A,
+
+		(SELECT
+		TABLE_NAME
+		FROM TB_OBJECT
+		WHERE TABLE_NAME=
+		#{TABLE_NAME}
+		)B
+		)C
+		JOIN
+		( SELECT
+		CONN_TABLE
+		from
+		TB_OBJ_REL
+		WHERE STD_TABLE=
+		#{TABLE_NAME}
+		)D
+		on C.TABLE_NAME
+		= D.CONN_TABLE(+)
+
+
+
+	</select>
+
+
+	<!-- 객체 관계 관리 리스트(콤보) 작성자 조형욱 -->
+	<select id="getAdminObjectRelCombo" parameterType="String"
+		resultType="map">
+		SELECT
+		TABLE_NAME ID ,TABLE_NAME NAME
+		from TB_OBJECT
+		WHERE
+		TABLE_NAME != #{TABLE_NAME}
+
+		MINUS
+
+		SELECT
+		CONN_TABLE id ,CONN_TABLE name
+		FROM TB_OBJ_REL
+		WHERE STD_TABLE = #{TABLE_NAME}
+
+	</select>
+
+
+	<!-- 객체 관계 관리 조인식 설정 작성자 조형욱 -->
+	<select id="getAdminObjectRelJoin" parameterType="String"
+		resultType="map">
+		SELECT STD_TABLE,CONN_TABLE,JOIN_EXPR
+		from TB_OBJ_REL
+		WHERE
+		STD_TABLE = #{STD_TABLE} AND
+		CONN_TABLE = #{CONN_TABLE}
+
+
+
+	</select>
+
+
+	<!-- 객체 관계 관리 조인식 자동 작성 작성자 조형욱 -->
+	<select id="getAdminObjectRelJoinStandKeyList" parameterType="String"
+		resultType="map">
+		SELECT TABLE_NAME,COL_NAME
+		FROM TB_OBJINFO
+		WHERE PK_GUBUN
+		='Y'
+		and TABLE_NAME = #{STD_TABLE}
+	</select>
+
+
+	<select id="getAdminObjectRelJoinConnKeyList" parameterType="String"
+		resultType="map">
+		SELECT TABLE_NAME,COL_NAME
+		FROM TB_OBJINFO
+		WHERE PK_GUBUN
+		='Y'
+		and TABLE_NAME = #{CONN_TABLE}
+	</select>
+
+
+	<!-- 객체 관계 관리 업데이트 작성자 조형욱 -->
+	<update id="setAdminObjectRelJoinUpdate" parameterType="map">
+
+		UPDATE
+		TB_OBJ_REL
+
+		SET JOIN_EXPR = #{JOIN_EXPR},
+
+		UPDATE_ID = #{ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+
+		WHERE STD_TABLE = #{STD_TABLE}
+		and
+		CONN_TABLE = #{CONN_TABLE}
+
+	</update>
+
+
+	<!-- 객체 관계 관리 insert 작성자 조형욱 -->
+	<insert id="setAdminObjectRelJoinInsert" parameterType="map">
+		INSERT
+		INTO
+		TB_OBJ_REL(STD_TABLE,CONN_TABLE,JOIN_EXPR,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM)
+		VALUES
+		(#{STD_TABLE},#{CONN_TABLE},#{JOIN_EXPR},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108))
+	</insert>
+
+
+	<!-- 객체 관계 관리 삭제 작성자 조형욱 -->
+	<delete id="setAdminObjectRelJoinDelete" parameterType="String">
+
+		DELETE
+		FROM
+		TB_OBJ_REL
+		WHERE STD_TABLE = #{STD_TABLE}
+		AND
+		CONN_TABLE =
+		#{CONN_TABLE}
+
+	</delete>
+
+	<!-- 객체 정보 관리 인서트 업데이트 구분 작성자 조형욱 -->
+	<select id="getAdminObjectInfoGubunInsertUpdate" parameterType="String"
+		resultType="map">
+		SELECT
+		A.TABLE_NAME TABLE_NAME,A.COL_NAME COL_NAME
+
+		FROM
+		TB_OBJINFO A
+		WHERE a.TABLE_NAME =#{TABLE_NAME}
+		AND A.COL_NAME
+		=#{COL_NAME}
+
+	</select>
+
+	<!-- 객체 정보 활성화 채크 작성자 조형욱 -->
+	<select id="getAdminObjectActiveCheck3" parameterType="String"
+		resultType="map">
+		SELECT COL_NAME FROM TB_OBJINFO
+		WHERE TABLE_NAME =
+		#{table_name}
+		AND STAND_DATE ='Y'
+	</select>
+
+	<!-- 관리자 가입 아이디 검색으로 아이디 중복(일반 회원 TB 포함) 조회 -->
+	<select id="getManagerIdCheck" parameterType="String"
+		resultType="map">
+		SELECT A.USER_ID
+		FROM (select USER_ID FROM TB_OLAP_USR WHERE
+		USER_ID=#{insertId}
+		union all
+		SELECT MANAGER_ID AS USER_ID FROM
+		TB_OLAP_MANAGER WHERE
+		MANAGER_ID=#{insertId}
+		) A
+	</select>
+
+
+	<!-- 관리자 가입 데이터 인서트 -->
+	<insert id="setSignUpManager" parameterType="map">
+		INSERT INTO
+		TB_OLAP_MANAGER
+		(MANAGER_ID,MANAGER_PW,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM)
+		VALUES(#{MANAGER_ID},#{MANAGER_PASSWORD},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108))
+	</insert>
+
+	<insert id="setSignUpManagerIp" parameterType="map">
+		INSERT INTO
+		TB_OLAP_MANAGER_IP(MANAGER_ID,MANAGER_IP,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM)
+		VALUES(#{MANAGER_ID},#{MANAGER_IP},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108))
+	</insert>
+
+	<!-- 관리자 리스트 가져오기 작성자 조형욱 -->
+	<select id="getManagerList" resultType="map">
+		SELECT
+		MANAGER_ID,ENABLED
+		FROM TB_OLAP_MANAGER
+
+	</select>
+	
+	<!-- 관리자 정보 조회 -->
+	<select id="getManagerInfo"  parameterType="String" resultType="map">
+		SELECT  MANAGER_ID ,
+                       USER_ROLE
+		FROM TB_OLAP_MANAGER
+		WHERE  UPPER(MANAGER_ID) = UPPER(#{userId})
+	</select>
+
+	<!-- 관리자 삭제 작성자 조형욱 -->
+	<delete id="setManagerDelete" parameterType="String">
+		<![CDATA[
+			DELETE from TB_OLAP_MANAGER
+			WHERE  MANAGER_ID = #{MANAGER_ID}
+		]]>
+	</delete>
+
+	<!-- 관리자 ip 가져오기 작성자 조형욱 -->
+	<select id="getManagerIpList" resultType="map">
+		SELECT
+		MANAGER_ID,
+		MANAGER_IP,
+		MANAGER_IP as STAND_MANAGER_IP
+		FROM TB_OLAP_MANAGER_IP
+		WHERE
+		MANAGER_ID = #{MANAGER_ID}
+
+	</select>
+
+	<!-- IP] insert 작성자 조형욱 -->
+	<insert id="setManagerIpInsert">
+		INSERT INTO
+		TB_OLAP_MANAGER_IP(MANAGER_ID,MANAGER_IP,CREATE_ID,UPDATE_ID,UPDATE_DT,UPDATE_TM)
+		VALUES
+		(#{MANAGER_ID},#{MANAGER_IP},#{ID},#{ID},CONVERT(char(8), GETDATE(), 112),CONVERT(char(8), GETDATE(), 108))
+	</insert>
+
+	<!-- 아이피 삭제 작성자 조형욱 -->
+	<delete id="setManagerIpDelete" parameterType="map">
+
+		DELETE FROM
+		TB_OLAP_MANAGER_IP
+		WHERE MANAGER_ID = #{MANAGER_ID}
+		AND MANAGER_IP =
+		#{MANAGER_IP}
+
+	</delete>
+
+	<!-- 아이피 업데이트 작성자 조형욱 -->
+	<update id="setManagerIpUpdate" parameterType="map">
+
+		UPDATE
+		TB_OLAP_MANAGER_IP
+
+		SEt MANAGER_IP = #{MANAGER_IP},
+
+		UPDATE_ID = #{ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+
+		WHERE MANAGER_ID = #{MANAGER_ID}
+		AND
+		MANAGER_IP = #{STAND_MANAGER_IP}
+
+	</update>
+
+	<!-- 관리자 비번 가져오기 작성자 조형욱 -->
+	<select id="getAdminPwd" resultType="map">
+		SELECT
+		MANAGER_PW
+
+		FROM
+		TB_OLAP_MANAGER
+		where MANAGER_ID = #{managerId}
+
+	</select>
+
+	<!-- 관리자 비밀번호 변경 작성자 조형욱 -->
+	<update id="ActionAdminPwdChange" parameterType="map">
+		UPDATE
+		TB_OLAP_MANAGER
+		SET MANAGER_PW = #{encodePwd}
+		,UPDATE_ID = #{MANAGER_ID}
+		,UPDATE_DT = CONVERT(char(8), GETDATE(), 112)
+		,UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+		WHERE MANAGER_ID= #{MANAGER_ID}
+	</update>
+
+	<!-- 관리자 활성화 업데이트 작성자 조형욱 -->
+	<update id="setManagerEnabledUpdate" parameterType="map">
+
+		UPDATE
+		TB_OLAP_MANAGER
+
+		SET ENABLED = #{ENABLED},
+
+		UPDATE_ID = #{UPDATE_ID},
+
+		UPDATE_DT =
+		CONVERT(char(8), GETDATE(), 112),
+
+		UPDATE_TM =
+		CONVERT(char(8), GETDATE(), 108)
+
+		WHERE MANAGER_ID = #{MANAGER_ID}
+
+
+	</update>
+
+	<!-- 회원저장목록(관리자) 삭제 작성자 조형욱 -->
+	<delete id="setManagerSaveDelete" parameterType="String">
+		<![CDATA[
+			DELETE from TB_USR_SAVE_LIST
+		    WHERE USER_ID = #{MANAGER_ID}
+		]]>
+	</delete>
+
+	<!-- ML 그룹 정보 최상위 정보 가져오기 -->
+	<select id="getMLCode" resultType="map">
+		SELECT * FROM TB_CODE WHERE CODE_NAME like 'GRML%'
+	</select>
+
+	<!-- ML 그룹 정보 feature 가져오기 -->
+	<select id="getMLFeaCode" resultType="map">
+		SELECT * FROM TB_FEA_CODE
+	</select>
+
+	<!-- ML 그룹 정보 detail 가져오기 -->
+	<select id="getMLCodeRelation" resultType="map">
+		SELECT * FROM TB_FEA_GRP_INFO
+	</select>
+	<!-- feacode의 마지막 코드 값 가져오기 -->
+	<select id="getFeaLastCodeName" resultType="String">
+		SELECT TOP 1 CODE_NAME FROM TB_FEA_CODE ORDER BY CODE_NAME DESC
+	</select>
+
+	<!-- feature code insert -->
+	<insert id="insertFeaCodeData">
+		INSERT INTO
+		TB_FEA_CODE
+		(PARENT_CODE, CODE_NAME, CODE_STR_NAME, CODE_VALUE, CREATE_USER, UPDATE_USER)
+		VALUES
+		(#{parentCode}, #{feaCode}, #{codeStr}, #{codeValue}, #{userName}, #{userName})
+	</insert>
+
+	<insert id="excelUploadinsertFeaCodeData" parameterType="Map">
+		INSERT INTO
+		TB_FEA_CODE
+		(PARENT_CODE,CODE_NAME, CODE_STR_NAME, CODE_VALUE, CREATE_USER, UPDATE_USER)
+		VALUES
+		<foreach collection="param" item="item" separator=",">
+		(#{item.parentCode}, #{item.feaCode}, #{item.codeStr}, #{item.codeStr}, #{item.userId}, #{item.userId})
+		</foreach>
+	</insert>
+
+	<delete id="deleteAllFeaCodeData">
+		DELETE  FROM TB_FEA_CODE
+	</delete>
+
+	<!-- feature 하위 detail 값 insert -->
+	<insert id="insertFeaGrpDetail">
+		INSERT INTO
+		TB_FEA_GRP_INFO
+		(GRP_CODE, FEA_CODE, DETAIL_VALUES, CREATE_USER, UPDATE_USER)
+		VALUES
+		(#{grpCode}, #{feaCode}, #{detailValue}, #{userName}, #{userName})
+	</insert>
+
+	<insert id="excelUploadinsertFeaGrpInfoData" parameterType="Map">
+		INSERT INTO
+		TB_FEA_GRP_INFO
+		(GRP_CODE, FEA_CODE, DETAIL_VALUES, CREATE_USER, UPDATE_USER)
+		VALUES
+		<foreach collection="param" item="item" separator=",">
+		(#{item.parentCode}, #{item.feaCode}, #{item.detailValue}, #{item.userId}, #{item.userId})
+		</foreach>
+	</insert>
+
+	<delete id="deleteAllFeaGrpInfoData">
+		DELETE FROM TB_FEA_GRP_INFO
+	</delete>
+	
+	<delete id="delFeaCode">
+		DELETE FROM TB_FEA_CODE WHERE PARENT_CODE = #{selCode}
+	</delete>
+	
+	<insert id="savFeaCode" parameterType="map">
+		INSERT INTO TB_FEA_CODE (
+			PARENT_CODE
+			,CODE_NAME
+			,CODE_STR_NAME
+			,CODE_VALUE
+			,CREATE_USER
+			,CREATE_DT
+			,UPDATE_USER
+			,UPDATE_DT
+		) VALUES
+		<foreach item="dList" index="index" collection="list" open="" separator="," close="">
+		(
+			#{dList.selCode}
+			,#{dList.codeNm}
+			,#{dList.PRODUCT_GROUP}
+			,#{dList.PRODUCT_GROUP}
+			,#{dList.userId}
+			,GETDATE()
+			,#{dList.userId}
+			,GETDATE()
+		)	
+		</foreach>
+	</insert>		
+	
+	<insert id="savGrpInfo" parameterType="map">
+		INSERT INTO TB_FEA_GRP_INFO (
+			GRP_CODE
+			,FEA_CODE
+			,DETAIL_VALUES
+			,CREATE_USER
+			,CREATE_DT
+			,UPDATE_USER
+			,UPDATE_DT
+		) VALUES
+		<foreach item="dList" index="index" collection="list" open="" separator="," close="">
+		(
+			#{dList.selCode}
+			,#{dList.codeNm}
+			,#{dList.PRODUCT_NAME}
+			,#{dList.userId}
+			,GETDATE()
+			,#{dList.userId}
+			,GETDATE()
+		)	
+		</foreach>
+	</insert>		
+
+	<!-- Feature Code update -->
+	<update id="updateFeaCodeData">
+		UPDATE
+			TB_FEA_CODE
+		SET
+			CODE_STR_NAME = #{codeStr},
+			CODE_VALUE = #{codeVal},
+			UPDATE_USER = #{userName},
+			UPDATE_DT = GETDATE()
+		WHERE
+			PARENT_CODE = #{grpCode}
+			AND
+			CODE_NAME = #{feaCode}
+			AND
+			CODE_STR_NAME =#{originCdStr}
+			AND
+			CODE_VALUE = #{originCdVal}
+	</update>
+
+	<update id="updateFeaDetailCodeData">
+		UPDATE
+			TB_FEA_GRP_INFO
+		SET
+			DETAIL_VALUES = #{codeVal},
+			UPDATE_USER = #{userName},
+			UPDATE_DT = GETDATE()
+		WHERE
+			GRP_CODE = #{grpCode}
+			AND
+			FEA_CODE = #{feaCode}
+			AND
+			DETAIL_VALUES = #{originVal}
+	</update>
+
+	<delete id="deleteFeaCodeData">
+		DELETE FROM
+			TB_FEA_CODE
+		WHERE
+			PARENT_CODE = #{grpCode}
+			AND
+			CODE_NAME = #{feaCode}
+			AND
+			CODE_STR_NAME = #{codeStrName}
+			AND
+			CODE_VALUE = #{codeValue}
+	</delete>
+
+	<delete id="deleteFeaDetailCodeData">
+		DELETE FROM
+			TB_FEA_GRP_INFO
+		WHERE
+			GRP_CODE = #{grpCode}
+			AND
+			FEA_CODE = #{feaCode}
+			<if test="value != null and value != ''">
+			AND
+			DETAIL_VALUES = #{value}
+			</if>
+	</delete>
+
+	<select id="getHierarchyCodes" resultType="map">
+		SELECT *
+		FROM
+		TB_FEA_HIERA
+	</select>
+
+	<delete id="deleteHierarchyCodes">
+		DELETE FROM TB_FEA_HIERA
+	</delete>
+
+	<update id="adminMLGroupInfoUpdate">
+		UPDATE
+			TB_FEA_HIERA
+		SET
+			LEVEL_1 = #{level_1},
+			LEVEL_2 = #{level_2},
+			LEVEL_3 = #{level_3},
+			LEVEL_4 = #{level_4},
+			LEVEL_5 = #{level_5}
+		WHERE
+			PK_NUM = #{pk_num}
+	</update>
+
+	<delete id="adminMLGroupInfoDelete">
+		DELETE FROM
+			TB_FEA_HIERA
+		WHERE
+	 		PK_NUM = #{pk_num}
+	</delete>
+
+	<insert id="adminMLGroupInfoInsert">
+		INSERT INTO TB_FEA_HIERA
+		(LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5, PK_NUM)
+		VALUES
+		(#{level_1}, #{level_2}, #{level_3}, #{level_4}, #{level_5},#{pk_num})
+	</insert>
+	<insert id="excelUploadinsertHierarchyData">
+		INSERT INTO TB_FEA_HIERA
+		(LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5, PK_NUM)
+		VALUES
+		<foreach collection="param" item="item" separator=",">
+		(#{item.level_1}, #{item.level_2}, #{item.level_3}, #{item.level_4}, #{item.level_5},#{item.pk_num})
+		</foreach>
+	</insert>
+
+
+	<!-- ML 정보 엑셀 다운로드 -->
+	<select id="downMLGroupInfo" resultType="map">
+		SELECT A.CODE_NAME AS CODENAME , A.CODE_STR_NAME AS CODETYPE , B.CODE_STR_NAME AS PRODUCTGROUP , C.DETAIL_VALUES AS PRODUCTNAME
+		FROM TB_CODE A
+		INNER JOIN TB_FEA_CODE B ON A.CODE_NAME = B.PARENT_CODE
+		INNER JOIN TB_FEA_GRP_INFO C ON B.PARENT_CODE = C.GRP_CODE
+		WHERE B.CODE_NAME = C.FEA_CODE AND A.CODE_NAME = #{codeNm} 
+		ORDER BY CODETYPE ASC, PRODUCTGROUP ASC , PRODUCTNAME ASC
+	</select>
+
+	<!-- rule base 조회 -->
+	<sql id="callRuleList">
+		SELECT
+			MCD
+			,SCD
+			,CD_NM
+			,ORD
+			,ATTR1
+			,ATTR2
+			,ATTR3
+			,ATTR4
+			,ATTR5
+			,ATTR6
+			,ATTR7
+			,ATTR8
+			,ATTR9
+			,ATTR10
+			,ATTR11
+			,ATTR12
+			,ATTR13
+			,ATTR14
+			,ATTR15
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_COM
+		<where>
+			SCD = 'MCD'
+			<if test='ruleNm != "" and ruleNm != null '>AND UPPER(CD_NM) LIKE UPPER('%'+#{ruleNm}+'%')</if>
+		</where>
+		ORDER BY REG_DT DESC, ORD ASC
+	</sql>
+
+	<select id="getRuleList" resultType="map">
+		<include refid="callRuleList"/>
+	</select>
+
+	<select id="getRuleCount" parameterType="java.util.Map" resultType="int">
+		SELECT count(*) FROM (
+			<include refid="callRuleList"/>
+		) cnt
+	</select>
+	
+	<!-- rule base 저장 -->
+	<insert id="ruleListSave">
+		MERGE
+			TB_RULE_COM AS A
+		USING (SELECT 
+				#{MCD}
+				,#{SCD}
+				,#{CD_NM}
+				,#{ORD}
+				,#{ATTR1}
+				,#{ATTR2}
+				,#{ATTR3}
+				,#{ATTR4}
+				,#{ATTR5}
+				,#{ATTR6}
+				,#{ATTR7}
+				,#{ATTR8}
+				,#{ATTR9}
+				,#{ATTR10}
+				,#{ATTR11}
+				,#{ATTR12}
+				,#{ATTR13}
+				,#{ATTR14}
+				,#{ATTR15}
+				,#{RMKS}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+		      ) AS B (
+		      	MCD
+		      	,SCD
+		      	,CD_NM
+				,ORD
+				,ATTR1
+				,ATTR2
+				,ATTR3
+				,ATTR4
+				,ATTR5
+				,ATTR6
+				,ATTR7
+				,ATTR8
+				,ATTR9
+				,ATTR10
+				,ATTR11
+				,ATTR12
+				,ATTR13
+				,ATTR14
+				,ATTR15
+				,RMKS
+				,REG_DT
+				,REG_ID
+				,MOD_DT
+				,MOD_ID
+		      ) 
+		      ON A.MCD = B.MCD AND A.SCD = B.SCD
+              WHEN NOT MATCHED THEN
+              	INSERT (
+					MCD
+					,SCD
+					,CD_NM
+					,ORD
+					,ATTR1
+					,ATTR2
+					,ATTR3
+					,ATTR4
+					,ATTR5
+					,ATTR6
+					,ATTR7
+					,ATTR8
+					,ATTR9
+					,ATTR10
+					,ATTR11
+					,ATTR12
+					,ATTR13
+					,ATTR14
+					,ATTR15
+					,RMKS
+					,REG_DT
+					,REG_ID
+					,MOD_DT
+					,MOD_ID
+              	)VALUES(
+					B.MCD
+					,'MCD'
+					,B.CD_NM
+					,B.ORD
+					,B.ATTR1
+					,B.ATTR2
+					,B.ATTR3
+					,B.ATTR4
+					,B.ATTR5
+					,B.ATTR6
+					,B.ATTR7
+					,B.ATTR8
+					,B.ATTR9
+					,B.ATTR10
+					,B.ATTR11
+					,B.ATTR12
+					,B.ATTR13
+					,B.ATTR14
+					,B.ATTR15
+					,B.RMKS
+					,B.REG_DT
+					,B.REG_ID
+					,B.MOD_DT
+					,B.MOD_ID
+				)WHEN MATCHED THEN
+              	UPDATE SET
+			      	CD_NM    =   B.CD_NM 
+					,ORD     =   B.ORD   
+					,ATTR1   =   B.ATTR1 
+					,ATTR2   =   B.ATTR2 
+					,ATTR3   =   B.ATTR3 
+					,ATTR4   =   B.ATTR4 
+					,ATTR5   =   B.ATTR5 
+					,ATTR6   =   B.ATTR6 
+					,ATTR7   =   B.ATTR7 
+					,ATTR8   =   B.ATTR8 
+					,ATTR9   =   B.ATTR9 
+					,ATTR10  =   B.ATTR10
+					,ATTR11  =   B.ATTR11
+					,ATTR12  =   B.ATTR12
+					,ATTR13  =   B.ATTR13
+					,ATTR14  =   B.ATTR14
+					,ATTR15  =   B.ATTR15
+					,RMKS    =   B.RMKS  
+					,MOD_DT  =	 B.MOD_DT
+					,MOD_ID  =   B.MOD_ID;
+	</insert>
+
+	<delete id="ruleListDelete">
+		DELETE FROM TB_RULE_COM WHERE MCD = #{MCD} AND SCD = #{SCD}
+	</delete>
+	
+	<!-- rule base 조회 -->
+	<sql id="callPopRuleList">
+		SELECT
+			MCD
+			,SCD
+			,CD_NM
+			,ORD
+			,ATTR1
+			,ATTR2
+			,ATTR3
+			,ATTR4
+			,ATTR5
+			,ATTR6
+			,ATTR7
+			,ATTR8
+			,ATTR9
+			,ATTR10
+			,ATTR11
+			,ATTR12
+			,ATTR13
+			,ATTR14
+			,ATTR15
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_COM
+		WHERE MCD = #{popMcd} AND SCD != 'MCD'
+		ORDER BY REG_DT DESC, ORD ASC
+	</sql>
+
+	<select id="getPopRuleList" resultType="map">
+		<include refid="callPopRuleList"/>
+	</select>	
+	
+		<!-- rule base 저장 -->
+	<insert id="ruleListPopSave">
+		MERGE
+			TB_RULE_COM AS A
+		USING (SELECT 
+				#{MCD}
+				,#{SCD}
+				,#{CD_NM}
+				,#{ORD}
+				,#{ATTR1}
+				,#{ATTR2}
+				,#{ATTR3}
+				,#{ATTR4}
+				,#{ATTR5}
+				,#{ATTR6}
+				,#{ATTR7}
+				,#{ATTR8}
+				,#{ATTR9}
+				,#{ATTR10}
+				,#{ATTR11}
+				,#{ATTR12}
+				,#{ATTR13}
+				,#{ATTR14}
+				,#{ATTR15}
+				,#{RMKS}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+		      ) AS B (
+		      	MCD
+		      	,SCD
+		      	,CD_NM
+				,ORD
+				,ATTR1
+				,ATTR2
+				,ATTR3
+				,ATTR4
+				,ATTR5
+				,ATTR6
+				,ATTR7
+				,ATTR8
+				,ATTR9
+				,ATTR10
+				,ATTR11
+				,ATTR12
+				,ATTR13
+				,ATTR14
+				,ATTR15
+				,RMKS
+				,REG_DT
+				,REG_ID
+				,MOD_DT
+				,MOD_ID
+		      ) 
+		      ON A.MCD = B.MCD AND A.SCD = B.SCD
+              WHEN NOT MATCHED THEN
+              	INSERT (
+					MCD
+					,SCD
+					,CD_NM
+					,ORD
+					,ATTR1
+					,ATTR2
+					,ATTR3
+					,ATTR4
+					,ATTR5
+					,ATTR6
+					,ATTR7
+					,ATTR8
+					,ATTR9
+					,ATTR10
+					,ATTR11
+					,ATTR12
+					,ATTR13
+					,ATTR14
+					,ATTR15
+					,RMKS
+					,REG_DT
+					,REG_ID
+					,MOD_DT
+					,MOD_ID
+              	)VALUES(
+					B.MCD
+					,B.SCD
+					,B.CD_NM
+					,B.ORD
+					,B.ATTR1
+					,B.ATTR2
+					,B.ATTR3
+					,B.ATTR4
+					,B.ATTR5
+					,B.ATTR6
+					,B.ATTR7
+					,B.ATTR8
+					,B.ATTR9
+					,B.ATTR10
+					,B.ATTR11
+					,B.ATTR12
+					,B.ATTR13
+					,B.ATTR14
+					,B.ATTR15
+					,B.RMKS
+					,B.REG_DT
+					,B.REG_ID
+					,B.MOD_DT
+					,B.MOD_ID
+				)WHEN MATCHED THEN
+              	UPDATE SET
+			      	CD_NM    =   B.CD_NM 
+					,ORD     =   B.ORD   
+					,ATTR1   =   B.ATTR1 
+					,ATTR2   =   B.ATTR2 
+					,ATTR3   =   B.ATTR3 
+					,ATTR4   =   B.ATTR4 
+					,ATTR5   =   B.ATTR5 
+					,ATTR6   =   B.ATTR6 
+					,ATTR7   =   B.ATTR7 
+					,ATTR8   =   B.ATTR8 
+					,ATTR9   =   B.ATTR9 
+					,ATTR10  =   B.ATTR10
+					,ATTR11  =   B.ATTR11
+					,ATTR12  =   B.ATTR12
+					,ATTR13  =   B.ATTR13
+					,ATTR14  =   B.ATTR14
+					,ATTR15  =   B.ATTR15
+					,RMKS    =   B.RMKS  
+					,MOD_DT  =	 B.MOD_DT
+					,MOD_ID  =   B.MOD_ID;
+	</insert>
+
+	<delete id="ruleListPopDelete">
+		DELETE FROM TB_RULE_COM WHERE MCD = #{MCD} AND SCD = #{SCD}
+	</delete>
+	
+	<!-- Rule 표준정보 Material Guide 조회  -->
+	<select id="getMgList" resultType="map">
+		SELECT
+			R_NO
+			,PRODUCT
+			,CONT_FR
+			,CONT_TO
+			,TEMP_FR
+			,TEMP_TO
+			,MTRL_TYPE
+			,MTRL_CD
+			,GRADE
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+			,PRODUCT_GB
+		FROM TB_RULE_C1
+		<where>
+			<if test='PRODUCT != "" and PRODUCT != null '>AND UPPER(PRODUCT) LIKE UPPER('%'+#{PRODUCT}+'%')</if>
+		</where>
+		ORDER BY PRODUCT, PRODUCT_GB
+	</select>
+	
+	<!-- Rule 표준정보 Seal Operation WIndow 조회 -->
+	<select id="getSowList" resultType="map">
+		SELECT
+			R_IDX
+			,R_NO
+			,SEAL_TYPE
+			,SEAL_STD_GB
+			,SEAL_GB_TYPE
+			,RS_GB
+			,PV_CURVE
+			,SHAFT_SIZE_MIN
+			,SHAFT_SIZE_MAX
+			,SEAL_SIZE_MIN
+			,SEAL_SIZE_MAX
+			,MTRL_CD_M1
+			,MTRL_CD_M2
+			,MTRL_CD_M3
+			,MTRL_CD_M4
+			,PRESS_OUT_D
+			,SHAFT_SPEED_1_MIN
+			,SHAFT_SPEED_2_MIN
+			,SHAFT_SPEED_1_MAX
+			,SHAFT_SPEED_2_MAX
+			,VISCOSITY_MIN
+			,VISCOSITY_MAX
+			,VISCOSITY_MIN_UNIT
+			,VISCOSITY_MAX_UNIT
+			,TEMP_MIN
+			,TEMP_MAX
+			,SG_MIN
+			,SG_MAX
+			,VAP_PRES_MARGIN_MIN
+			,VAP_PRES_MARGIN_MAX
+			,SOLID
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_C3
+		<where>
+			<if test='SEAL_TYPE != "" and SEAL_TYPE != null '>AND UPPER(SEAL_TYPE) LIKE UPPER('%'+#{SEAL_TYPE}+'%')</if>
+		</where>
+		ORDER BY SEAL_TYPE
+	</select>
+	
+	<!-- Rule 표준정보 Seal Type별 표준재질 조회 -->
+	<select id="getStList" resultType="map">
+		SELECT
+			R_IDX
+			,R_NO
+			,SEAL_TYPE
+			,SEAL_GB
+			,CONFIG
+			,MTRL_CD_IN_M1
+			,MTRL_CD_IN_M2
+			,MTRL_CD_IN_M3
+			,MTRL_CD_IN_M4
+			,MTRL_CD_OUT_M1
+			,MTRL_CD_OUT_M2
+			,MTRL_CD_OUT_M3
+			,MTRL_CD_OUT_M4
+			,S_MTRL
+			,S_MTRL_YN
+			,GS_MTRL
+			,DB_RMKS
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_C9
+		<where>
+			<if test='SEAL_TYPE != "" and SEAL_TYPE != null '>AND UPPER(SEAL_TYPE) LIKE UPPER('%'+#{SEAL_TYPE}+'%')</if>
+		</where>
+		ORDER BY SEAL_TYPE
+	</select>
+	
+	<!-- 가격정보 조회 -->
+	<select id="getPriceInfoList" resultType="map">
+		SELECT
+			PRICE_ID
+			,SEAL_TYPE
+			,SHEET_NO
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_PRICE_INFO
+		ORDER BY SEAL_TYPE
+	</select>
+	
+	<select id="getGrpList" resultType="map">
+		SELECT
+			GRP_ID
+			,GRP_NM
+			,RMK
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_PRICE_GRP
+		ORDER BY GRP_NM
+	</select>
+	
+	<select id="getSealList" resultType="map">
+		SELECT
+			GRP_ID
+			,SEAL_TYPE
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_PRICE_SEAL
+		WHERE GRP_ID=#{GRP_ID}
+		ORDER BY MOD_DT DESC
+	</select>
+	
+	<select id="getSheetList" resultType="map">
+		SELECT
+			GRP_ID
+			,SHEET_NO
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_PRICE_SHEET
+		WHERE GRP_ID=#{GRP_ID}
+		ORDER BY MOD_DT DESC
+	</select>
+	
+	<!-- 가격정보 정보 저장 -->
+	<insert id="savPriceInfo" parameterType="map">
+		INSERT INTO TB_PRICE_INFO(
+			PRICE_ID
+			,SEAL_TYPE
+			,SHEET_NO
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{PRICE_ID}
+			,#{SEAL_TYPE}
+			,#{SHEET_NO}
+			,#{file_path, jdbcType=VARCHAR}
+			,#{file_name_org, jdbcType=VARCHAR}
+			,#{file_size, jdbcType=VARCHAR}
+			,#{file_name, jdbcType=VARCHAR}
+			,#{file_ext, jdbcType=VARCHAR}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert>
+	
+	<insert id="savGrp" parameterType="map">
+		INSERT INTO TB_PRICE_GRP(
+			GRP_ID
+			,GRP_NM
+			,RMK
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{GRP_ID}
+			,#{GRP_NM}
+			,#{RMK}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert> 
+	
+	<insert id="savSeal" parameterType="map">
+		INSERT INTO TB_PRICE_SEAL(
+			GRP_ID
+			,SEAL_TYPE
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{GRP_ID}
+			,#{SEAL_TYPE}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert> 
+	
+	<insert id="savSheet" parameterType="map">
+		INSERT INTO TB_PRICE_SHEET(
+			GRP_ID
+			,SHEET_NO
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{GRP_ID}
+			,#{SHEET_NO}
+			,#{file_path, jdbcType=VARCHAR}
+			,#{file_name_org, jdbcType=VARCHAR}
+			,#{file_size, jdbcType=VARCHAR}
+			,#{file_name, jdbcType=VARCHAR}
+			,#{file_ext, jdbcType=VARCHAR}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert>  
+	
+	<!-- 가격정보 수정 -->
+	<update id="editPriceInfo" parameterType="map">
+		UPDATE TB_PRICE_INFO
+		SET SEAL_TYPE=#{SEAL_TYPE}
+			,SHEET_NO=#{SHEET_NO}
+			<if test='file_path != null and file_path != ""' >, FILE_PATH=#{file_path} </if>
+			<if test='file_name_org != null and file_name_org != ""' >, FILE_ORG_NM=#{file_name_org} </if>
+			<if test='file_name != null and file_name != ""' >, FILE_NM=#{file_name} </if>
+			<if test='file_size != null and file_size != ""' >, FILE_SIZE=#{file_size} </if>
+			<if test='file_ext != null and file_ext != ""' >, FILE_EXT=#{file_ext} </if>
+			,MOD_DT=GETDATE() 
+			,MOD_ID=#{USER_ID}
+		WHERE PRICE_ID=#{PRICE_ID}
+	</update>	
+	
+	<update id="editGrp" parameterType="map">
+		UPDATE TB_PRICE_GRP
+		SET GRP_NM=#{GRP_NM}
+			,RMK=#{RMK}
+			,MOD_DT=GETDATE() 
+			,MOD_ID=#{USER_ID}
+		WHERE GRP_ID=#{GRP_ID}
+	</update>	
+	
+	<update id="editSheet" parameterType="map">
+		UPDATE TB_PRICE_SHEET
+		SET MOD_DT=GETDATE() 
+			,MOD_ID=#{USER_ID}
+			<if test='file_path != null and file_path != ""' >, FILE_PATH=#{file_path} </if>
+			<if test='file_name_org != null and file_name_org != ""' >, FILE_ORG_NM=#{file_name_org} </if>
+			<if test='file_name != null and file_name != ""' >, FILE_NM=#{file_name} </if>
+			<if test='file_size != null and file_size != ""' >, FILE_SIZE=#{file_size} </if>
+			<if test='file_ext != null and file_ext != ""' >, FILE_EXT=#{file_ext} </if>
+		WHERE GRP_ID=#{GRP_ID} AND SHEET_NO=#{SHEET_NO}
+	</update>	
+	
+	<!-- 가격정보 삭제 -->
+	<delete id="delPriceInfo" parameterType="map">
+		DELETE FROM TB_PRICE_INFO
+		WHERE PRICE_ID = #{priceId}
+	</delete>
+	
+	<delete id="delGrp" parameterType="map">
+		DELETE FROM TB_PRICE_GRP
+		WHERE GRP_ID = #{GRP_ID}
+	</delete>
+	
+	<delete id="delSealAll" parameterType="map">
+		DELETE FROM TB_PRICE_SEAL
+		WHERE GRP_ID = #{GRP_ID}
+	</delete>
+	
+	<delete id="delSheetAll" parameterType="map">
+		DELETE FROM TB_PRICE_SHEET
+		WHERE GRP_ID = #{GRP_ID}
+	</delete>
+	
+	<select id="getDelSheetList" resultType="map">
+		SELECT
+			FILE_PATH
+			,FILE_NM
+		FROM TB_PRICE_SHEET
+		WHERE GRP_ID=#{GRP_ID}
+	</select>
+	
+	<delete id="delSeal" parameterType="map">
+		DELETE FROM TB_PRICE_SEAL
+		WHERE GRP_ID = #{GRP_ID} AND SEAL_TYPE = #{SEAL_TYPE}
+	</delete>
+	
+	<delete id="delSheet" parameterType="map">
+		DELETE FROM TB_PRICE_SHEET
+		WHERE GRP_ID = #{GRP_ID} AND SHEET_NO = #{SHEET_NO}
+	</delete>
+	
+	<!-- 이미지 정보 가져오기 -->
+	<select id="getSealTypeList" resultType="map">
+		SELECT
+			B.FILE_PATH
+			,B.FILE_NM
+			,B.FILE_ORG_NM
+		FROM TB_PRICE_SEAL A JOIN TB_PRICE_SHEET B ON A.GRP_ID = B.GRP_ID
+		WHERE A.SEAL_TYPE IN <foreach item="sealData" index="index" collection="list" open="(" separator="," close=")">#{sealData.sealType}</foreach>
+	</select>
+</mapper>

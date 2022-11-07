@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<Configuration>
+	<properties>
+		<property name="appName">OLAP</property>
+	</properties>
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %5p [%c] %m%n" />
+		</Console>
+		<RollingFile name="file" fileName="log/${appName}.log"
+			filePattern="log/$${date:yyyy}/$${date:MM}/$${date:dd}/${appName}_%d{yyyyMMddHH}.log">
+			<PatternLayout pattern="%d %5p [%c] %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy /><!-- Rotated everyday -->
+			</Policies>
+		</RollingFile>
+		
+		<!-- SQL log File 생성 -->
+		<RollingFile name="sqlFile" fileName="log/${appName}_sql.log"
+			filePattern="log/$${date:yyyy}/$${date:MM}/$${date:dd}/${appName}_%d{yyyyMMddHH}_sql.log">
+			<PatternLayout pattern="%d %5p [%c] %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy /><!-- Rotated everyday -->
+			</Policies>
+		</RollingFile>
+	</Appenders>
+
+	<Loggers>
+		<Logger name="java.sql" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+		<Logger name="egovframework" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+			<AppenderRef ref="sqlFile" />
+		</Logger>
+		<!-- log SQL with timing information, post execution -->
+		<Logger name="jdbc.sqltiming" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+		<Logger name="org.springframework" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+		<Root level="INFO">
+			<AppenderRef ref="console" />
+			<AppenderRef ref="file" />
+			<AppenderRef ref="sqlFile" />
+		</Root>
+	</Loggers>
+</Configuration>

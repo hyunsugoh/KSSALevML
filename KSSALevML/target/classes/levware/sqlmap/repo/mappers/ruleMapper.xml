@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.RuleMapper">
+	<!-- rule base 조회 -->
+	<sql id="callRuleList">
+		SELECT
+			MCD
+			,SCD
+			,CD_NM
+			,ORD
+			,ATTR1
+			,ATTR2
+			,ATTR3
+			,ATTR4
+			,ATTR5
+			,ATTR6
+			,ATTR7
+			,ATTR8
+			,ATTR9
+			,ATTR10
+			,ATTR11
+			,ATTR12
+			,ATTR13
+			,ATTR14
+			,ATTR15
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_COM
+		<where>
+			SCD = 'MCD'
+			<if test='ruleNm != "" and ruleNm != null '>AND UPPER(CD_NM) LIKE UPPER('%'+#{ruleNm}+'%')</if>
+		</where>
+		ORDER BY REG_DT DESC, ORD ASC
+	</sql>
+
+	<select id="getRuleList" resultType="map">
+		<include refid="callRuleList"/>
+	</select>
+
+	<select id="getRuleCount" parameterType="java.util.Map" resultType="int">
+		SELECT count(*) FROM (
+			<include refid="callRuleList"/>
+		) cnt
+	</select>
+	
+	<!-- rule base 저장 -->
+	<insert id="ruleListSave">
+		MERGE
+			TB_RULE_COM AS A
+		USING (SELECT 
+				#{MCD}
+				,#{SCD}
+				,#{CD_NM}
+				,#{ORD}
+				,#{ATTR1}
+				,#{ATTR2}
+				,#{ATTR3}
+				,#{ATTR4}
+				,#{ATTR5}
+				,#{ATTR6}
+				,#{ATTR7}
+				,#{ATTR8}
+				,#{ATTR9}
+				,#{ATTR10}
+				,#{ATTR11}
+				,#{ATTR12}
+				,#{ATTR13}
+				,#{ATTR14}
+				,#{ATTR15}
+				,#{RMKS}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+		      ) AS B (
+		      	MCD
+		      	,SCD
+		      	,CD_NM
+				,ORD
+				,ATTR1
+				,ATTR2
+				,ATTR3
+				,ATTR4
+				,ATTR5
+				,ATTR6
+				,ATTR7
+				,ATTR8
+				,ATTR9
+				,ATTR10
+				,ATTR11
+				,ATTR12
+				,ATTR13
+				,ATTR14
+				,ATTR15
+				,RMKS
+				,REG_DT
+				,REG_ID
+				,MOD_DT
+				,MOD_ID
+		      ) 
+		      ON A.MCD = B.MCD AND A.SCD = B.SCD
+              WHEN NOT MATCHED THEN
+              	INSERT (
+					MCD
+					,SCD
+					,CD_NM
+					,ORD
+					,ATTR1
+					,ATTR2
+					,ATTR3
+					,ATTR4
+					,ATTR5
+					,ATTR6
+					,ATTR7
+					,ATTR8
+					,ATTR9
+					,ATTR10
+					,ATTR11
+					,ATTR12
+					,ATTR13
+					,ATTR14
+					,ATTR15
+					,RMKS
+					,REG_DT
+					,REG_ID
+					,MOD_DT
+					,MOD_ID
+              	)VALUES(
+					B.MCD
+					,'MCD'
+					,B.CD_NM
+					,B.ORD
+					,B.ATTR1
+					,B.ATTR2
+					,B.ATTR3
+					,B.ATTR4
+					,B.ATTR5
+					,B.ATTR6
+					,B.ATTR7
+					,B.ATTR8
+					,B.ATTR9
+					,B.ATTR10
+					,B.ATTR11
+					,B.ATTR12
+					,B.ATTR13
+					,B.ATTR14
+					,B.ATTR15
+					,B.RMKS
+					,B.REG_DT
+					,B.REG_ID
+					,B.MOD_DT
+					,B.MOD_ID
+				)WHEN MATCHED THEN
+              	UPDATE SET
+			      	CD_NM    =   B.CD_NM 
+					,ORD     =   B.ORD   
+					,ATTR1   =   B.ATTR1 
+					,ATTR2   =   B.ATTR2 
+					,ATTR3   =   B.ATTR3 
+					,ATTR4   =   B.ATTR4 
+					,ATTR5   =   B.ATTR5 
+					,ATTR6   =   B.ATTR6 
+					,ATTR7   =   B.ATTR7 
+					,ATTR8   =   B.ATTR8 
+					,ATTR9   =   B.ATTR9 
+					,ATTR10  =   B.ATTR10
+					,ATTR11  =   B.ATTR11
+					,ATTR12  =   B.ATTR12
+					,ATTR13  =   B.ATTR13
+					,ATTR14  =   B.ATTR14
+					,ATTR15  =   B.ATTR15
+					,RMKS    =   B.RMKS  
+					,MOD_DT  =	 B.MOD_DT
+					,MOD_ID  =   B.MOD_ID;
+	</insert>
+
+	<delete id="ruleListDelete">
+		DELETE FROM TB_RULE_COM WHERE MCD = #{MCD} AND SCD = #{SCD}
+	</delete>
+	
+	<!-- rule base 조회 -->
+	<sql id="callPopRuleList">
+		SELECT
+			MCD
+			,SCD
+			,CD_NM
+			,ORD
+			,ATTR1
+			,ATTR2
+			,ATTR3
+			,ATTR4
+			,ATTR5
+			,ATTR6
+			,ATTR7
+			,ATTR8
+			,ATTR9
+			,ATTR10
+			,ATTR11
+			,ATTR12
+			,ATTR13
+			,ATTR14
+			,ATTR15
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_COM
+		WHERE MCD = #{popMcd} AND SCD != 'MCD'
+		ORDER BY REG_DT DESC, ORD ASC
+	</sql>
+
+	<select id="getPopRuleList" resultType="map">
+		<include refid="callPopRuleList"/>
+	</select>	
+	
+		<!-- rule base 저장 -->
+	<insert id="ruleListPopSave">
+		MERGE
+			TB_RULE_COM AS A
+		USING (SELECT 
+				#{MCD}
+				,#{SCD}
+				,#{CD_NM}
+				,#{ORD}
+				,#{ATTR1}
+				,#{ATTR2}
+				,#{ATTR3}
+				,#{ATTR4}
+				,#{ATTR5}
+				,#{ATTR6}
+				,#{ATTR7}
+				,#{ATTR8}
+				,#{ATTR9}
+				,#{ATTR10}
+				,#{ATTR11}
+				,#{ATTR12}
+				,#{ATTR13}
+				,#{ATTR14}
+				,#{ATTR15}
+				,#{RMKS}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+				,CONVERT(char(8), GETDATE(), 112)
+				,#{user_id}
+		      ) AS B (
+		      	MCD
+		      	,SCD
+		      	,CD_NM
+				,ORD
+				,ATTR1
+				,ATTR2
+				,ATTR3
+				,ATTR4
+				,ATTR5
+				,ATTR6
+				,ATTR7
+				,ATTR8
+				,ATTR9
+				,ATTR10
+				,ATTR11
+				,ATTR12
+				,ATTR13
+				,ATTR14
+				,ATTR15
+				,RMKS
+				,REG_DT
+				,REG_ID
+				,MOD_DT
+				,MOD_ID
+		      ) 
+		      ON A.MCD = B.MCD AND A.SCD = B.SCD
+              WHEN NOT MATCHED THEN
+              	INSERT (
+					MCD
+					,SCD
+					,CD_NM
+					,ORD
+					,ATTR1
+					,ATTR2
+					,ATTR3
+					,ATTR4
+					,ATTR5
+					,ATTR6
+					,ATTR7
+					,ATTR8
+					,ATTR9
+					,ATTR10
+					,ATTR11
+					,ATTR12
+					,ATTR13
+					,ATTR14
+					,ATTR15
+					,RMKS
+					,REG_DT
+					,REG_ID
+					,MOD_DT
+					,MOD_ID
+              	)VALUES(
+					B.MCD
+					,B.SCD
+					,B.CD_NM
+					,B.ORD
+					,B.ATTR1
+					,B.ATTR2
+					,B.ATTR3
+					,B.ATTR4
+					,B.ATTR5
+					,B.ATTR6
+					,B.ATTR7
+					,B.ATTR8
+					,B.ATTR9
+					,B.ATTR10
+					,B.ATTR11
+					,B.ATTR12
+					,B.ATTR13
+					,B.ATTR14
+					,B.ATTR15
+					,B.RMKS
+					,B.REG_DT
+					,B.REG_ID
+					,B.MOD_DT
+					,B.MOD_ID
+				)WHEN MATCHED THEN
+              	UPDATE SET
+			      	CD_NM    =   B.CD_NM 
+					,ORD     =   B.ORD   
+					,ATTR1   =   B.ATTR1 
+					,ATTR2   =   B.ATTR2 
+					,ATTR3   =   B.ATTR3 
+					,ATTR4   =   B.ATTR4 
+					,ATTR5   =   B.ATTR5 
+					,ATTR6   =   B.ATTR6 
+					,ATTR7   =   B.ATTR7 
+					,ATTR8   =   B.ATTR8 
+					,ATTR9   =   B.ATTR9 
+					,ATTR10  =   B.ATTR10
+					,ATTR11  =   B.ATTR11
+					,ATTR12  =   B.ATTR12
+					,ATTR13  =   B.ATTR13
+					,ATTR14  =   B.ATTR14
+					,ATTR15  =   B.ATTR15
+					,RMKS    =   B.RMKS  
+					,MOD_DT  =	 B.MOD_DT
+					,MOD_ID  =   B.MOD_ID;
+	</insert>
+
+	<delete id="ruleListPopDelete">
+		DELETE FROM TB_RULE_COM WHERE MCD = #{MCD} AND SCD = #{SCD}
+	</delete>
+	
+		<!-- Rule 표준정보 Material Guide 조회  -->
+	<select id="callMgList" resultType="map">
+		SELECT
+			R_NO
+			,PRODUCT
+			,CONT_FR
+			,CONT_TO
+			,TEMP_FR
+			,TEMP_TO
+			,MTRL_TYPE
+			,MTRL_CD
+			,GRADE
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+			,PRODUCT_GB
+		FROM TB_RULE_C1
+		<where>
+			<if test='PRODUCT != "" and PRODUCT != null '>AND UPPER(PRODUCT) LIKE UPPER('%'+#{PRODUCT}+'%')</if>
+		</where>
+		ORDER BY PRODUCT, PRODUCT_GB
+	</select>
+	
+	<!-- Rule 표준정보 Seal Operation WIndow 조회 -->
+	<select id="callSowList" resultType="map">
+		SELECT
+			R_IDX
+			,R_NO
+			,SEAL_TYPE
+			,SEAL_STD_GB
+			,SEAL_GB_TYPE
+			,RS_GB
+			,PV_CURVE
+			,SHAFT_SIZE_MIN
+			,SHAFT_SIZE_MAX
+			,SEAL_SIZE_MIN
+			,SEAL_SIZE_MAX
+			,MTRL_CD_M1
+			,MTRL_CD_M2
+			,MTRL_CD_M3
+			,MTRL_CD_M4
+			,PRESS_OUT_D
+			,SHAFT_SPEED_1_MIN
+			,SHAFT_SPEED_2_MIN
+			,SHAFT_SPEED_1_MAX
+			,SHAFT_SPEED_2_MAX
+			,VISCOSITY_MIN
+			,VISCOSITY_MAX
+			,VISCOSITY_MIN_UNIT
+			,VISCOSITY_MAX_UNIT
+			,TEMP_MIN
+			,TEMP_MAX
+			,SG_MIN
+			,SG_MAX
+			,VAP_PRES_MARGIN_MIN
+			,VAP_PRES_MARGIN_MAX
+			,SOLID
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_C3
+		<where>
+			<if test='SEAL_TYPE != "" and SEAL_TYPE != null '>AND UPPER(SEAL_TYPE) LIKE UPPER('%'+#{SEAL_TYPE}+'%')</if>
+		</where>
+		ORDER BY SEAL_TYPE
+	</select>
+	
+	<!-- Rule 표준정보 Seal Type별 표준재질 조회 -->
+	<select id="callStList" resultType="map">
+		SELECT
+			R_IDX
+			,R_NO
+			,SEAL_TYPE
+			,SEAL_GB
+			,CONFIG
+			,MTRL_CD_IN_M1
+			,MTRL_CD_IN_M2
+			,MTRL_CD_IN_M3
+			,MTRL_CD_IN_M4
+			,MTRL_CD_OUT_M1
+			,MTRL_CD_OUT_M2
+			,MTRL_CD_OUT_M3
+			,MTRL_CD_OUT_M4
+			,S_MTRL
+			,S_MTRL_YN
+			,GS_MTRL
+			,DB_RMKS
+			,RMKS
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		FROM TB_RULE_C9
+		<where>
+			<if test='SEAL_TYPE != "" and SEAL_TYPE != null '>AND UPPER(SEAL_TYPE) LIKE UPPER('%'+#{SEAL_TYPE}+'%')</if>
+		</where>
+		ORDER BY SEAL_TYPE
+	</select>
+</mapper>

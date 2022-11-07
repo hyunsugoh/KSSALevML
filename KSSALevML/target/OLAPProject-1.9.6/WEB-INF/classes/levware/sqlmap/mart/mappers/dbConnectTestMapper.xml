@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.mart.DBConnectMapper">
+
+
+
+
+	<select id="getOracleTableRecordCnt" resultType="int">
+		select count(*)
+		from TB_PRICE001
+	</select>
+
+
+	<!-- Result Map -->
+	<resultMap type="PriceVO" id="PriceVOMap">
+		<result property="investDt" column="INVEST_DT" />
+		<result property="itmNm" column="ITM_CD" />
+		<result property="unitQty" column="UNIT_QTY" />
+		<result property="specNmUnifi" column="SPEC_NM_UNIFI" />
+		<result property="itmCd" column="ITM_CD" />
+		<result property="itmNm" column="ITM_NM" />
+		<result property="unitQty" column="UNIT_QTY" />
+		<result property="specNmUnifi" column="SPEC_NM_UNIFI" />
+		<result property="grdNmUnifi" column="GRD_NM_UNIFI" />
+		<result property="maxPrice" column="MAX_PRICE" />
+		<result property="avgPrice" column="AVG_PRICE" />
+		<result property="lowPrice" column="LOW_PRICE" />
+	</resultMap>
+
+
+	<select id="getPriceData" parameterType="map" resultMap="PriceVOMap">
+		SELECT
+			B.INVEST_DT,
+			B.ITM_CD,
+			B.ITM_NM,
+			B.UNIT_QTY,
+			B.SPEC_NM_UNIFI,
+			B.GRD_NM_UNIFI,
+			B.MAX_PRICE,
+			B.AVG_PRICE,
+			B.LOW_PRICE
+		from
+			(select ROWNUM as rnum,
+			A.INVEST_DT,
+			A.ITM_CD,
+			A.ITM_NM,
+			A.UNIT_QTY,
+			A.SPEC_NM_UNIFI,
+			A.GRD_NM_UNIFI,
+			A.MAX_PRICE,
+			A.AVG_PRICE,
+			A.LOW_PRICE
+			from (
+				select
+				INVEST_DT,
+				ITM_CD,
+				ITM_NM,
+				UNIT_QTY,
+				SPEC_NM_UNIFI,
+				GRD_NM_UNIFI,
+				MAX_PRICE,
+				AVG_PRICE,
+				LOW_PRICE
+				from TB_PRICE001
+				order by INVEST_DT DESC ) A
+			where ROWNUM  <![CDATA[ <= ]]> #{endPage} ) B
+		where B.rnum  <![CDATA[ >= ]]>  #{startPage}
+	</select>
+	
+	
+</mapper>

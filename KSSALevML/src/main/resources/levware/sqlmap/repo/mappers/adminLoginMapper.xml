@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.AdminLoginMapper">
+
+	<!-- 관리자 IP 조회 작성자 박수연-->
+	<resultMap type="AdminInfoVO" id="AdminInfoVOMap">
+		<result property="managerId" column="MANAGER_ID" />
+		<result property="managerIp" column="MANAGER_IP" />
+	</resultMap>
+	
+	<!--  아이디 검색으로 관리자 IP 조회 작성자 박수연-->
+	<select id="getManagerIp" parameterType="String" resultMap="AdminInfoVOMap">
+		SELECT MANAGER_IP
+        FROM TB_OLAP_MANAGER_IP
+        WHERE MANAGER_ID= #{managerId}
+	</select>
+	
+
+</mapper>

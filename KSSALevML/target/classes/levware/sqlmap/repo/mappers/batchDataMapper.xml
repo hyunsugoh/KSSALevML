@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.BatchDataMapper">	
+
+	<resultMap type="BatchDataVO" id="BatchDataVOMap">
+		<result property="step_exe_id" column="STEP_EXECUTION_ID" />
+		<result property="version" column="VERSION" />
+		<result property="step_name" column="STEP_NAME" />
+		<result property="job_exe_id" column="JOB_EXECUTION_ID" />
+		<result property="start_time" column="START_TIME" />
+		<result property="end_time" column="END_TIME" />
+		<result property="status" column="STATUS" />
+		<result property="commit_count" column="COMMIT_COUNT" />
+		<result property="read_count" column="READ_COUNT" />
+		<result property="filter_count" column="FILTER_COUNT" />
+		<result property="write_count" column="WRITE_COUNT" />
+		<result property="read_skip_count" column="READ_SKIP_COUNT" />
+		<result property="write_skip_count" column="WRITE_SKIP_COUNT" />
+		<result property="process_skip_count" column="PROCESS_SKIP_COUNT" />
+		<result property="rollback_count" column="ROLLBACK_COUNT" />
+		<result property="cnv1_count" column="CNV1_COUNT" />
+		<result property="exit_code" column="EXIT_CODE" />
+		<result property="exit_message" column="EXIT_MESSAGE" />
+		<result property="last_updated" column="LAST_UPDATED" />
+	</resultMap>
+	
+	<select id="getBatchDataList" parameterType="map" resultMap="BatchDataVOMap">
+		SELECT 
+			STEP_EXECUTION_ID,
+			VERSION,
+			STEP_NAME,
+			JOB_EXECUTION_ID,
+			START_TIME,
+			END_TIME,
+			STATUS,
+			COMMIT_COUNT,
+			READ_COUNT,
+			FILTER_COUNT,
+			WRITE_COUNT,
+			READ_SKIP_COUNT,
+			WRITE_SKIP_COUNT,
+			PROCESS_SKIP_COUNT,
+			ROLLBACK_COUNT,
+			(SELECT COUNT(*) FROM M_DATA_CNV1 ) AS CNV1_COUNT,
+			EXIT_CODE,
+			EXIT_MESSAGE,
+			LAST_UPDATED
+		FROM BATCH_STEP_EXECUTION
+		ORDER BY START_TIME DESC 
+		
+	</select>
+	
+	<resultMap type="BatchJobDataVO" id="BatchJobDataVOMap">
+		<result property="job_exe_id" column="JOB_EXECUTION_ID" />
+		<result property="version" column="VERSION" />
+		<result property="job_instance_id" column="JOB_INSTANCE_ID" />
+		<result property="create_time" column="CREATE_TIME" />
+		<result property="start_time" column="START_TIME" />
+		<result property="end_time" column="END_TIME" />
+		<result property="status" column="STATUS" />
+		<result property="exit_code" column="EXIT_CODE" />
+		<result property="exit_message" column="EXIT_MESSAGE" />
+		<result property="last_updated" column="LAST_UPDATED" />
+		<result property="job_config_loc" column="JOB_CONFIGURATION_LOCATION" />
+	</resultMap>
+	
+	<select id="getBatchJobList" parameterType="map" resultMap="BatchJobDataVOMap">
+		SELECT 
+			JOB_EXECUTION_ID,
+			VERSION,
+			JOB_INSTANCE_ID,
+			CREATE_TIME,
+			START_TIME,
+			END_TIME,
+			STATUS,
+			EXIT_CODE,
+			EXIT_MESSAGE,
+			LAST_UPDATED,
+			JOB_CONFIGURATION_LOCATION
+		FROM BATCH_JOB_EXECUTION
+		ORDER BY START_TIME DESC 
+		
+	</select>
+	
+	<update id="batchReset">
+		UPDATE BATCH_JOB_EXECUTION SET END_TIME = GETDATE() WHERE END_TIME IS NULL
+	</update>
+
+	<select id="cnv1DataCount" resultType="int">
+		SELECT COUNT(*) FROM M_DATA_CNV1 AS CNV1_TOTALCNT
+	</select>
+	
+</mapper>

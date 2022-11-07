@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.MLDeployMapper">
+	<delete id="deleteDeployM" parameterType="map">
+		DELETE FROM lev_ml.dbo.TB_ML_DEPLOY_M
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid} 
+	</delete>
+	
+	<delete id="deleteDeployD" parameterType="map">
+		DELETE FROM lev_ml.dbo.TB_ML_DEPLOY_D
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid}
+	</delete>
+
+	<insert id="insertDeployM"  parameterType="map">
+		INSERT INTO lev_ml.dbo.TB_ML_DEPLOY_M(
+			SUB_PJT_ID, DEPLOY_ID, DEPLOY_TYPE, DEPLOY_NAME, DEPLOY_DESC, API_KEY, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)VALUES(
+			#{subpjtid}, #{deployid}, #{deploytype}, #{deploynm}, #{deploydesc}, #{apikey}, #{userid}, getdate(), #{userid}, getdate()
+		)
+	</insert>
+	
+	<insert id="insertDeployD"  parameterType="map">
+		INSERT INTO lev_ml.dbo.TB_ML_DEPLOY_D(
+			SUB_PJT_ID, DEPLOY_ID, ID, MID, ORDNO, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)VALUES
+		<foreach item="item" collection="list" open="" separator="," close="">
+		(
+			#{item.subpjtid}, #{item.deployid}, #{item.id}, #{item.mid}, #{item.ordno}, #{userid}, getdate(), #{userid}, getdate()
+		)
+		</foreach>
+	</insert>
+	
+	<select id="getDeployList"  parameterType="map" resultType="map">
+		SELECT SUB_PJT_ID,DEPLOY_ID,DEPLOY_NAME
+		FROM TB_ML_DEPLOY_M
+	</select>
+	
+	<select id="getDeployInfo"  parameterType="map" resultType="map">	
+		SELECT A.LABEL AS SUB_PJT_NM,B.DEPLOY_NAME
+		FROM TB_PROJECT_SUB A JOIN TB_ML_DEPLOY_M B ON A.ID=B.SUB_PJT_ID
+		WHERE A.ID=#{subpjtid} AND B.DEPLOY_ID=#{deployid}
+	</select>
+	
+	<select id="getAPIKey"  parameterType="map" resultType="string">
+		SELECT API_KEY
+		FROM TB_ML_DEPLOY_M
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid}
+	</select>
+	
+	<select id="getModelId"  parameterType="map" resultType="string">
+		SELECT ID
+		FROM TB_ML_DEPLOY_D
+		WHERE DEPLOY_ID=#{deployid} and MID LIKE 'tr%'
+	</select>
+	
+	<select id="getAPIUrl"  parameterType="map" resultType="string">
+		select CASE WHEN MID='tr001' THEN 'lr/predict/'
+					WHEN MID='tr002' THEN 'logistic/predict/'
+					WHEN MID='tr003' THEN 'knn/predict/'
+					WHEN MID='tr004' THEN 'gnb/predict/'
+					WHEN MID='tr005' THEN 'svm/predict/'
+					WHEN MID='tr006' THEN 'dtc/predict/'
+					WHEN MID='tr007' THEN 'rfc/predict/'
+					WHEN MID='tr008' THEN 'xgbc/predict/'
+					WHEN MID='tr009' THEN 'xgbr/predict/'
+					WHEN MID='tr010' THEN 'kmeans/train/'
+					WHEN MID='tr011' THEN 'dbscan/train/'
+					WHEN MID='tr012' THEN 'arima/predict/'
+					<!-- WHEN MID='tr013' THEN 'lr'
+					WHEN MID='tr014' THEN 'lr'
+					WHEN MID='tr015' THEN 'lr' -->
+					WHEN MID='tr016' THEN 'dtr/predict/'
+					WHEN MID='tr016' THEN 'rfr/predict/'
+				END AS API_URL
+		FROM TB_ML_DEPLOY_D
+		WHERE DEPLOY_ID=#{deployid} and ID=#{modelid}
+	</select>
+	
+	<select id="getFeatures"  parameterType="map" resultType="string">
+		SELECT INPUT_COL
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} and MODEL_UID=#{modelid} and GRID_ID='featureGrid'
+	</select>
+	
+	<select id="getLabel"  parameterType="map" resultType="string">
+		SELECT INPUT_COL
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} and MODEL_UID=#{modelid} and GRID_ID='labelGrid'
+	</select>
+</mapper>

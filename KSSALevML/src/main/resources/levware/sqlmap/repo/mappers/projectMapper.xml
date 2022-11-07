@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.ProjectMapper">
+	
+	<select id="getProjectList" parameterType="map" resultType="map">
+		SELECT ID,LABEL,DESCRIPTION,CREATE_ID,CONVERT(VARCHAR(10),CREATE_DT,111) as CREATE_DT,UPDATE_ID,CONVERT(VARCHAR(10),UPDATE_DT,111) as UPDATE_DT
+		FROM TB_PROJECT
+		WHERE CREATE_ID = #{userid}
+		ORDER BY CREATE_DT DESC
+	</select>
+	
+	<insert id="insertProject" parameterType="map">
+		INSERT INTO TB_PROJECT
+		(ID,LABEL,DESCRIPTION,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT)
+		VALUES
+		(#{projectId}, #{label}, #{description}, #{userid}, getdate(), #{userid}, getdate())
+	</insert>
+	
+	<select id="selectProject" parameterType="String" resultType="map">
+        SELECT ID,LABEL,DESCRIPTION,CREATE_ID,CONVERT(VARCHAR(10),CREATE_DT,111) as CREATE_DT,UPDATE_ID,CONVERT(VARCHAR(10),UPDATE_DT,111) as UPDATE_DT
+		FROM TB_PROJECT
+        WHERE ID = #{projectId}
+    </select>
+    
+    <select id="subProjectList" resultType="map">
+		SELECT ID,PJT_ID,LABEL,CONTENTS,DESCRIPTION,CREATE_ID,CONVERT(VARCHAR(10),CREATE_DT,111) as CREATE_DT,UPDATE_ID,CONVERT(VARCHAR(10),UPDATE_DT,111) as UPDATE_DT
+		FROM TB_PROJECT_SUB
+		WHERE PJT_ID = #{projectId}
+		ORDER BY UPDATE_DT  DESC,CREATE_DT DESC
+	</select>
+	
+	<insert id="insertSubProject" parameterType="map">
+		INSERT INTO TB_PROJECT_SUB
+		(ID,PJT_ID,LABEL,DESCRIPTION,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT)
+		VALUES
+		(#{projectId},#{mainProjectId}, #{label},#{description}, #{userid}, getdate(), #{userid}, getdate())
+	</insert>
+	
+	<insert id="copySubProject" parameterType="map">
+		INSERT INTO TB_PROJECT_SUB(
+			ID,PJT_ID,LABEL,DESCRIPTION,CONTENTS,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT
+		)
+		SELECT #{projectId},PJT_ID,LABEL,DESCRIPTION, CONTENTS, #{userid}, getdate(), #{userid}, getdate()
+		FROM TB_PROJECT_SUB
+		WHERE ID=#{copyProjectId}
+	</insert>
+	
+	<insert id="copyControlParam" parameterType="map">
+		INSERT INTO TB_ML_CONTROL_PARAM(
+			SUB_PJT_ID,MODEL_UID,PARAM_ID,PARAM_VALUE,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT
+		)
+		SELECT #{projectId}, MODEL_UID, PARAM_ID, PARAM_VALUE, #{userid}, getdate(), #{userid}, getdate()
+		FROM TB_ML_CONTROL_PARAM
+		WHERE SUB_PJT_ID=#{copyProjectId}
+	</insert>
+	
+	<insert id="copyControlColParam" parameterType="map">
+		INSERT INTO TB_ML_CONTROL_COL_PARAM(
+			SUB_PJT_ID,MODEL_UID,GRID_ID,INPUT_COL,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT
+		)
+		SELECT #{projectId}, MODEL_UID, GRID_ID, INPUT_COL, #{userid}, getdate(), #{userid}, getdate()
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{copyProjectId}
+	</insert>
+	
+	<update id="updateSubProject" parameterType="map">
+		UPDATE TB_PROJECT_SUB SET LABEL = #{label},
+								  DESCRIPTION = #{description},
+								  UPDATE_ID = #{userid},
+								  UPDATE_DT = getdate()
+		WHERE ID = #{subProjectId}	 
+	</update>
+	
+	<delete id="deleteSubProject" parameterType="map">
+		DELETE FROM TB_PROJECT_SUB 
+		WHERE ID = #{subProjectId}
+	</delete>
+	
+	<select id="getSubProjectInfo" parameterType="String" resultType="map">
+        SELECT ID,PJT_ID,LABEL,CONTENTS,DESCRIPTION,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT
+		FROM TB_PROJECT_SUB
+        WHERE ID = #{subProjectId}
+    </select>
+    
+    <select id="getSubProjectContents" parameterType="String" resultType="map">
+        SELECT CONTENTS
+		FROM TB_PROJECT_SUB
+        WHERE ID = #{subProjectId}
+    </select>
+    
+    <update id="updateSubContents" parameterType="map">
+		UPDATE TB_PROJECT_SUB SET CONTENTS = #{contents},
+								  UPDATE_ID = #{userid},
+								  UPDATE_DT = getdate()
+		WHERE ID = #{subProjectId}	 
+	</update>
+	
+	<insert id="insertToModelInfo" parameterType="map">
+		INSERT INTO TB_ML_MODEL
+		(PJT_ID,MODEL_ID,MODEL_URL,FEATURE,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT)
+		VALUES
+		(#{subProjectId}, #{modelId},#{modelUrl},#{featureList},#{userid}, getdate(), #{userid}, getdate())
+	</insert>
+</mapper>

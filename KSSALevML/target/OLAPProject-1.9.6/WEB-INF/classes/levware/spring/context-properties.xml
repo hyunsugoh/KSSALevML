@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 프로퍼티 정보 설정 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd">
+ 
+ 
+ <bean name="propertyService" class="egovframework.rte.fdl.property.impl.EgovPropertyServiceImpl" 
+         destroy-method="destroy">
+      <property name="properties">
+         <map>
+            <entry key="defaultTable" value="M_DATA_CNV1"/>
+         </map>
+      </property>			
+   </bean>
+   
+   <bean id="messageSource"
+	class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+	<property name="basenames">
+		<list>
+			<value>classpath:/message/message-common</value>
+			<value>classpath:/egovframework/rte/fdl/idgnr/messages/idgnr</value>
+			<value>classpath:/egovframework/rte/fdl/property/messages/properties</value>
+		</list>
+	</property>
+	<property name="cacheSeconds">
+		<value>60</value>
+	</property>
+</bean>
+   
+</beans>

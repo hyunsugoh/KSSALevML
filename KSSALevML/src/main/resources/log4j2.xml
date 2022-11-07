@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<Configuration>
+	<properties>
+		<property name="appName">KSSA</property>
+	</properties>
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %5p [%c] %m%n" />
+		</Console>
+		
+		<RollingFile name="file" fileName="/log/${appName}.log" 
+			filePattern="/log/$${date:yyyy}/$${date:MM}/$${date:dd}/${appName}_%d{yyyyMMddHH}.log">
+		  <PatternLayout pattern="%d %5p [%c] %m%n" />
+		    <Policies>
+		      <SizeBasedTriggeringPolicy size="10MB" /> <!-- 10MB 용량이 초과시 DefaultRolloverStrategy 정책만큼 넘버링 -->      
+		      <TimeBasedTriggeringPolicy module="true" interval="1" /><!-- 일별 로그 파일 생성-->
+		    </Policies>
+		  <!-- DefaultRolloverStrategy max="500" fileIndex="min" / --><!-- 롤링 파일 500개 까지 생성 -->
+		</RollingFile>
+  
+		
+		<!-- SQL log File 생성 -->
+		<RollingFile name="sqlFile" fileName="/log/${appName}_sql.log"
+			filePattern="/log/$${date:yyyy}/$${date:MM}/$${date:dd}/${appName}_%d{yyyyMMddHH}_sql.log">
+			<PatternLayout pattern="%d %5p [%c] %m%n" />
+			<Policies>
+		        <SizeBasedTriggeringPolicy size="10MB" /> <!-- 10MB 용량이 초과시 DefaultRolloverStrategy 정책만큼 넘버링 -->      
+		        <TimeBasedTriggeringPolicy module="true" interval="1" /><!-- 일별 로그 파일 생성-->
+			</Policies>
+		</RollingFile>
+	</Appenders>
+
+	<Loggers>
+		<Root level="debug" additivity="false" >
+			<AppenderRef ref="console" level="INFO" />
+			<AppenderRef ref="file" level="DEBUG" />
+			<AppenderRef ref="sqlFile" level="DEBUG" />
+		</Root>
+		
+		<Logger name="org.springframework" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+		
+		<Logger name="egovframework" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+		  
+		<Logger name="java.sql" additivity="false">
+			<AppenderRef ref="console" level="INFO"  />
+			<AppenderRef ref="sqlFile" level="DEBUG"  />
+		</Logger>
+
+		<!-- log SQL with timing information, post execution -->
+		<Logger name="jdbc.sqltiming" level="INFO" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>
+
+		
+		<Logger name="jdbc.audit" level="OFF" additivity="false"/>
+		<Logger name="jdbc.resultset" level="OFF" additivity="false"/>
+		<Logger name="jdbc.resultsettable" level="OFF" additivity="false"/>
+		
+	</Loggers>
+</Configuration>

@@ -1,0 +1,13 @@
+@charset "EUC-KR";
+.click-evt-as_cnt:hover{
+/* 	border:#007bff solid 1.5px !important; */
+	background-color:#68B4CF !important;
+	color:black;
+	font-weight:bold;
+}
+#asHistoryGrid table tbody tr:hover{
+	cursor:pointer;
+}
+.collapse-selected-row {
+	font-weight:bold;
+}

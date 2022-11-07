@@ -1,0 +1,140 @@
+@charset 'utf-8';
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 300;
+  src: local('※'), local('※'),
+  url('../fonts/NotoSansKR-Light.eot'),
+  url('../fonts/NotoSansKR-Light.eot#iefix') format('embedded-opentype'),
+  url('../fonts/NotoSansKR-Light.woff') format('woff'),
+  url('../fonts/NotoSansKR-Light.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 400;
+  src: local(※), local(※),
+  url('../fonts/NotoSansKR-Regular.eot'),
+  url('../fonts/NotoSansKR-Regular.eot#iefix') format('embedded-opentype'),
+  url('../fonts/NotoSansKR-Regular.woff') format('woff'),
+  url('../fonts/NotoSansKR-Regular.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 500;
+  src: local('※'), local('※'),
+  url('../fonts/NotoSansKR-Medium.eot'),
+  url('../fonts/NotoSansKR-Medium.eot#iefix') format('embedded-opentype'),
+  url('../fonts/NotoSansKR-Medium.woff') format('woff'),
+  url('../fonts/NotoSansKR-Medium.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 700;
+  src: local('※'), local('※'),
+  url('../fonts/NotoSansKR-Bold.eot'),
+  url('../fonts/NotoSansKR-Bold.eot#iefix') format('embedded-opentype'),
+  url('../fonts/NotoSansKR-Bold.woff') format('woff'),
+  url('../fonts/NotoSansKR-Bold.otf') format('opentype');
+}
+/* .col { */
+/*   flex: 1 0 50%;  where 50% is the intended size of the items */
+/* } */
+/* .row:before, .row:after { */
+/* display: flex !important; */
+/* } */	
+body{font-family: 'Noto Sans KR', 'sans-serif'; font-size: 16px;  }
+.olap-background-img{
+	
+/* 	background-image: url('/images/main/ksm_front.jpg'); */
+/* 	background-repeat:no-repeat; */
+/* 	background-position:center; */
+/* 	background-origin:content-box; */
+/* 	background-size: 100%; */
+/*     top: 0; */
+/*     left: 0; */
+/*     width: 100%; */
+/*     height: 100%; */
+    
+    
+	background: url('/images/main/main_bg.png') no-repeat left top fixed !important;
+-webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+h1,h2,h3,h4,h5,h6 {font-size:1em; font-weight:normal;}
+a {color: #333; text-decoration:none;}
+button {margin:0; padding:0; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; box-sizing:border-box; border:0 none; background-color:transparent; font-family:inherit; font-size:inherit; cursor:pointer;}
+textarea{width:100%; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; box-sizing:border-box; -webkit-appearance: none; outline: none; overflow-y: auto; resize: none; padding: 5px 10px; font: 16px/26px 'Noto Sans KR'; border: 1px solid #ececec; border-radius: 0; min-height: 90px;}
+input[type="text"], input[type="password"]{height:40px;}
+
+input:focus:focus, textarea:focus{border:1px solid #25949b;}
+input[disabled]{background-color: #f6f6f6;}
+.border-line-custom {border: 1px solid;}
+.custom-header-div{margin-bottom:0.2em;}
+.custom-under-line {border-bottom: 1px solid #d3d3d3;}
+.custom-badge-font{font-size:16px;font-weight:400;}
+/* btn override */
+.btn-primary:hover,.btn-secondary:hover,.btn-success:hover,.btn-danger:hover,.btn-warning:hover,.btn-info:hover,.btn-light:hover,.btn-dark:hover,.btn-deafult:hover,.btn-link:hover,
+.btn-outline-primary:hover,.btn-outline-secondary:hover,.btn-outline-success:hover,.btn-outline-danger:hover,.btn-outline-warning:hover,.btn-outline-info:hover,.btn-outline-light:hover,.btn-outline-dark:hover,.btn-outline-deafult:hover
+{font-weight:bold;}
+.user-login-form-div{margin-top:120px;width:473.6px;}
+.user-idFind-form-div{margin-top:120px;width:473.6px;}
+.user-pwdlnitialize-form-div{margin-top:120px;width:473.6px;}
+input[type="checkbox"], input[type="radio"]{clip: rect(0 0 0 0); width: 1px; height: 1px; position: absolute; margin: -1px; padding: 0; border: 0;}
+.custom-checkbox{display: inline-block; width: 17px; height: 17px; margin: -3px 8px 0 0; background: url(../../images/common/icons/icon_rd.jpg) no-repeat; vertical-align: middle;}
+.chbox:checked + label .custom-checkbox{background-image: url(../../images/common/icons/icon_rd_on.jpg)}
+.custom-help-icon-btn{color:#bdbdbf;font-size:16px;}
+.custom-help-icon-btn:hover{color:#283b42;font-weight:bold;font-size:16.5px;}
+.custom-admin-help-icon-btn{padding-top:0;}
+.custom-badge-outline-success{color: #28a745; border-color: #28a745; border:1px solid;}
+.custom-badge-outline-primary{color: #007bff; border-color: #007bff; border:1px solid;}
+.custom-badge-outline-info{color: #17a2b8;border-color: #17a2b8;border:1px solid;}
+
+.custom-inner-relative { position: relative; height: auto; }
+.custom-error-textarea { display: block; padding: 9.5px; margin: 0 0 10px; font-size: 13px; line-height: 1.42857143; color: #333; word-break: break-all; word-wrap: break-word; background-color: #f5f5f5; border: 1px solid #ccc; border-radius: 4px;}
+.custom-image-relative {vertical-align: text-bottom;}	
+input, textarea {
+    width: 100%;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
+    outline: none;
+    vertical-align: top;
+    padding: 4px 8px;
+    font-size: 16px;
+    background: none;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    background: #fff;
+}
+.box {
+    position:absolute;
+    top:50%; left:50%;
+    transform: translate(-50%, -50%);
+    }
+    
+.head-hide-area{
+	height:93px;
+}
+
+@media(max-width:639px){
+	.head-hide-area{height:130px;}
+}
+    
+/*
+select {
+    height: 40px;
+    background: #fff url(../../images/common/icons/arr_bt.png) no-repeat right 10px center / 11px auto;
+}
+select {
+    cursor: pointer;
+}*/

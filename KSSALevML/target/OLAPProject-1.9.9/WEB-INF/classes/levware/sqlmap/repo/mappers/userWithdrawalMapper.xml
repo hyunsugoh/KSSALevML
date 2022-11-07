@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.UserWithdrawalMapper">
+
+	<!-- 사용자 비밀번호 초기화 Result Map 작성자 박수연-->
+	<resultMap type="UserInfoVO" id="UserInfoVOMap">
+		<result property="userId" column="USER_ID" />
+		<result property="authHint" column="AUTH_HINT" />
+		<result property="authHintAns" column="AUTH_HINT_ANS" />
+		<result property="userPassward" column="USER_PASSWORD" />
+	</resultMap>
+	
+
+    		<!-- 회원 탈퇴-->
+	<delete id="actionWithdrawal" parameterType="UserInfoVO">
+		DELETE FROM TB_OLAP_USR 
+		WHERE USER_ID= #{userId}
+	</delete>
+	
+	
+</mapper>

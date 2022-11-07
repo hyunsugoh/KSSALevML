@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.MLMapper">
+
+	<!-- 모델관리 조회 -->
+	<select id="getModelList"  parameterType="map" resultType="map">
+			SELECT 	<if test='IS_RECENT_DATA != null and IS_RECENT_DATA != "" and IS_RECENT_DATA == "Y" '>TOP 1 </if> 
+							   A.MODEL_ID, A.TITLE, A.BUILD_TYPE,
+							  convert(char(10), A.CREATE_DT,120) as CREATE_DT, A.CREATE_USER,
+							  
+				              ROUND(B_SEAL_TYPE.CORRECT_RATE,10)      as CORRECT_RATE_SEAL_TYPE,
+				              B_SEAL_TYPE.TRAINING_CNT        as TRAINING_CNT_SEAL_TYPE,
+				              B_SEAL_TYPE.TEST_CNT                 as TEST_CNT_SEAL_TYPE,
+				              B_SEAL_TYPE.PROCESS_TIME       as PROCESS_TIME_SEAL_TYPE,
+				              
+				              ROUND(B_API_PLAN.CORRECT_RATE,10)        as CORRECT_RATE_API_PLAN,
+				              B_API_PLAN.TRAINING_CNT         as TRAINING_CNT_API_PLAN,
+				              B_API_PLAN.TEST_CNT                  as TEST_CNT_API_PLAN,
+				              B_API_PLAN.PROCESS_TIME         as PROCESS_TIME_API_PLAN,
+				              
+				              ROUND(B_CONN_COL.CORRECT_RATE,10) as CORRECT_RATE_CONN_COL,
+				              B_CONN_COL.TRAINING_CNT  as TRAINING_CNT_CONN_COL,
+				              B_CONN_COL.TEST_CNT            as TEST_CNT_CONN_COL,
+				              B_CONN_COL.PROCESS_TIME  as PROCESS_TIME_CONN_COL,
+				              
+				              convert(VARCHAR,convert(NUMERIC(5,2), ROUND(B_SEAL_TYPE.CORRECT_RATE,2)))
+								+'/'+ convert(VARCHAR,convert(NUMERIC(5,2),ROUND(B_API_PLAN.CORRECT_RATE,2)))
+								+'/'+ convert(VARCHAR,convert(NUMERIC(5,2),ROUND(B_CONN_COL.CORRECT_RATE,2))) as CORRECT_RATE_ALL
+				FROM (
+						SELECT MODEL_ID, 
+									  max(TITLE) as TITLE,
+									  max(ATTR1) as  BUILD_TYPE,
+						              max(CREATE_DT) as CREATE_DT,
+						              max(CREATE_USER) as CREATE_USER
+						FROM TB_ML_MODEL_MNG
+						GROUP BY MODEL_ID
+				) A 
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  max(CORRECT_RATE) as CORRECT_RATE,
+					 			  max(TRAINING_CNT) as TRAINING_CNT,
+					 			  max(TEST_CNT) as TEST_CNT,
+					 			  max(PROCESS_TIME) as PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'SEAL_TYPE'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_SEAL_TYPE ON A.MODEL_ID = B_SEAL_TYPE.MODEL_ID
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  max(CORRECT_RATE) as CORRECT_RATE,
+					 			  max(TRAINING_CNT) as TRAINING_CNT,
+					 			  max(TEST_CNT) as TEST_CNT,
+					 			  max(PROCESS_TIME) as PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'API_PLAN'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_API_PLAN ON A.MODEL_ID = B_API_PLAN.MODEL_ID
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  max(CORRECT_RATE) as CORRECT_RATE,
+					 			  max(TRAINING_CNT) as TRAINING_CNT,
+					 			  max(TEST_CNT) as TEST_CNT,
+					 			  max(PROCESS_TIME) as PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'CONN_COL'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_CONN_COL ON A.MODEL_ID = B_CONN_COL.MODEL_ID
+				<where>
+					<if test='MODEL_ID != null and MODEL_ID != ""' >AND A.MODEL_ID=#{MODEL_ID}</if>
+					<if test='DATE_FR != null and DATE_FR != ""'  >AND convert(char(8),A.CREATE_DT,112) <![CDATA[>=]]>#{DATE_FR}</if>
+					<if test='DATE_TO != null and DATE_TO != ""' >AND convert(char(8),A.CREATE_DT,112) <![CDATA[<=]]>#{DATE_TO}</if>
+				</where>
+				ORDER BY A.MODEL_ID DESC
+	</select>
+	
+	<!-- 트레이닝 대상 조회 -->
+	<select id="getModelTrainingList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  
+					   EQUIP_TYPE as EQUIP_TYPE,	
+					   PUMP_TYPE_G as PUMP_TYPE,
+					   PRODUCT_G as PRODUCT,
+		               isnull(TEMP_NOR,0) as TEMP_NOR,
+		               isnull(TEMP_MIN,0) as TEMP_MIN,
+		               isnull(TEMP_MAX,0) as TEMP_MAX,
+		               isnull(SPEC_GRAVITY_NOR,0) as SPEC_GRAVITY_NOR,
+		               isnull(SPEC_GRAVITY_MIN,0) as SPEC_GRAVITY_MIN,
+		               isnull(SPEC_GRAVITY_MAX,0) as SPEC_GRAVITY_MAX,
+		               isnull(VISC_NOR,0) as VISC_NOR, 
+		               isnull(VISC_MIN,0) as VISC_MIN, 
+		               isnull(VISC_MAX,0) as VISC_MAX, 
+		               isnull(VAP_PRES_NOR,0) as VAP_PRES_NOR,
+		               isnull(VAP_PRES_MIN,0) as VAP_PRES_MIN,
+		               isnull(VAP_PRES_MAX,0) as VAP_PRES_MAX,
+		               isnull(SEAL_CHAM_NOR,0) as SEAL_CHAM_NOR,
+		               isnull(SEAL_CHAM_MIN,0) as SEAL_CHAM_MIN,
+		               isnull(SEAL_CHAM_MAX,0) as SEAL_CHAM_MAX,
+		               
+		               <if test='MODEL_TYPE ==  "OEM" '>
+		               isnull(RPM_NOR,0) as RPM_NOR,
+		               isnull(RPM_MIN,0) as RPM_MIN,
+		               isnull(RPM_MAX,0) as RPM_MAX,
+		               isnull(SHAFT_SIZE,0) as SHAFT_SIZE,
+		               </if>
+		               
+		               <if test='CLASS_TYPE == "SEAL_TYPE" '>SEAL_TYPE as SEAL_TYPE</if> 
+					   <if test='CLASS_TYPE == "API_PLAN" '>API_PLAN as API_PLAN</if>
+					   <if test='CLASS_TYPE == "CONN_COL" '>SEAL_TYPE + ' | ' + MATERIAL +' | ' + API_PLAN as  CONN_COL</if>
+		FROM M_DATA_CNV2
+		WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		<if test='CLASS_TYPE == "SEAL_TYPE" '>AND SEAL_TYPE != '-'</if>
+		<if test='CLASS_TYPE == "API_PLAN" '>AND API_PLAN !='-'</if>
+		<if test='CLASS_TYPE == "CONN_COL" '>
+			AND SEAL_TYPE != '-'
+			AND MATERIAL !='-'
+			AND API_PLAN != '-'
+		</if>
+		<if test='CLASS_TYPE == "SEAL_TYPE" '>ORDER BY SEAL_TYPE</if>
+		<if test='CLASS_TYPE == "API_PLAN" '>ORDER BY API_PLAN</if>
+		<if test='CLASS_TYPE == "CONN_COL" '>ORDER BY SEAL_TYPE + ' | '+ MATERIAL +' | '+ API_PLAN</if>
+	</select>
+	
+	
+	<!-- Product 그룹정보 조회 -->
+	<select id="getProductList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  DISTINCT PRODUCT_G as PRODUCT
+		FROM M_DATA_CNV2
+		WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		ORDER BY PRODUCT_G
+	</select>
+	
+	<!-- Pump Type 그룹정보 조회 -->
+	<select id="getPumpTypeList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  DISTINCT PUMP_TYPE_G as PUMP_TYPE
+		FROM M_DATA_CNV2
+		WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		ORDER BY PUMP_TYPE_G
+	</select>
+	
+	<!-- Equip Type 정보 조회 -->
+	<select id="getEquipTypeList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT DISTINCT  EQUIP_TYPE as EQUIP_TYPE
+		FROM M_DATA_CNV2
+		WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		ORDER BY EQUIP_TYPE
+	</select>
+	
+	<!-- 예측인자기준 M_DATA_CNV2 데이터조회 -->
+	<select id="getDBbyPredictFeature" parameterType="map" resultType="map">
+		SELECT SEAL_TYPE, SEAL_SIZE, SEAL_CONFIG,
+		              TEMP_NOR, TEMP_MIN, TEMP_MAX,
+		              SPEC_GRAVITY_NOR,SPEC_GRAVITY_MIN,SPEC_GRAVITY_MAX,
+		              VISC_NOR,VISC_MIN,VISC_MAX,
+		              SEAL_CHAM_NOR,SEAL_CHAM_MIN,SEAL_CHAM_MAX
+		FROM M_DATA_CNV2
+		WHERE 1=1
+		<if test='TEMP_NOR != null and TEMP_NOR != ""' >AND TEMP_NOR=#{TEMP_NOR}</if>
+		<if test='TEMP_MIN != null and TEMP_MIN != ""' >AND TEMP_MIN=#{TEMP_MIN}</if>
+		<if test='TEMP_MAX != null and TEMP_MAX != ""' >AND TEMP_MAX=#{TEMP_MAX}</if>
+		<if test='SPEC_GRAVITY_NOR != null and SPEC_GRAVITY_NOR != ""' >AND SPEC_GRAVITY_NOR=#{SPEC_GRAVITY_NOR}</if>
+		<if test='SPEC_GRAVITY_MIN != null and SPEC_GRAVITY_MIN != ""' >AND SPEC_GRAVITY_MIN=#{SPEC_GRAVITY_MIN}</if>
+		<if test='SPEC_GRAVITY_MAX != null and SPEC_GRAVITY_MAX != ""' >AND SPEC_GRAVITY_MAX=#{SPEC_GRAVITY_MAX}</if>
+		<if test='VISC_NOR != null and VISC_NOR != ""' >AND VISC_NOR=#{VISC_NOR}</if>
+		<if test='TEMP_NOR != null and TEMP_NOR != ""' >AND TEMP_NOR=#{TEMP_NOR}</if>
+		<if test='VISC_MIN != null and VISC_MIN != ""' >AND VISC_MIN=#{VISC_MIN}</if>
+		<if test='VISC_MAX != null and VISC_MAX != ""' >AND VISC_MAX=#{VISC_MAX}</if>
+		<if test='SEAL_CHAM_NOR != null and SEAL_CHAM_NOR != ""' >AND SEAL_CHAM_NOR=#{SEAL_CHAM_NOR}</if>
+		<if test='SEAL_CHAM_MIN != null and SEAL_CHAM_MIN != ""' >AND SEAL_CHAM_MIN=#{SEAL_CHAM_MIN}</if>
+		<if test='SEAL_CHAM_MAX != null and SEAL_CHAM_MAX != ""' >AND SEAL_CHAM_MAX=#{SEAL_CHAM_MAX}</if>
+	</select>
+	
+	<!-- 모델생성정보 저장 -->
+	<insert id="setModelInfo" parameterType="map">
+		INSERT INTO TB_ML_MODEL_MNG(
+			MODEL_ID,
+			MODEL_TYPE,
+			MODEL_SUB_TYPE,
+			CORRECT_RATE,
+			CORR_COEF,
+			MEAN_ABS_ERR,
+			RMSE,
+			RAE,
+			RRSE,
+			TRAINING_CNT,
+			TEST_CNT,
+			MODEL_LOC,
+			REMARKS,
+			CREATE_DT,
+			CREATE_USER,
+			UPDATE_DT,
+			UPDATE_USER,
+			TITLE,
+			PROCESS_TIME,
+			ATTR1, 
+			ATTR2, 
+			ATTR3
+		) VALUES (
+			#{MODEL_ID},
+			#{MODEL_TYPE},
+			#{MODEL_SUB_TYPE},
+			#{CORRECT_RATE},
+			#{CORR_COEF},
+			#{MEAN_ABS_ERR},
+			#{RMSE},
+			#{RAE},
+			#{RRSE},
+			#{TRAINING_CNT},
+			#{TEST_CNT},
+			#{MODEL_LOC},
+			#{REMARKS},
+			GETDATE(),
+			#{USER_ID},
+			GETDATE(),
+			#{USER_ID},
+			#{TITLE},
+			#{PROCESS_TIME},
+			#{ATTR1}, 
+			#{ATTR2}, 
+			#{ATTR3}
+		)
+	</insert> 
+	
+	<!-- Target에 따른 Class 정보를 Model Attr Table에 저장  -->
+	<insert id="setModelAttrClassInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY CLASS ASC),
+						CLASS,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT
+				<if test='CLASS_TYPE == "SEAL_TYPE" '>SEAL_TYPE as CLASS</if>
+				<if test='CLASS_TYPE == "API_PLAN" '>API_PLAN as CLASS</if>
+				<if test='CLASS_TYPE == "CONN_COL" '>SEAL_TYPE+' | '+MATERIAL+' | '+API_PLAN as CLASS</if>
+			FROM M_DATA_CNV2
+			WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+			<if test='CLASS_TYPE == "SEAL_TYPE" '>AND SEAL_TYPE !='-'</if>
+			<if test='CLASS_TYPE == "API_PLAN" '>AND API_PLAN !='-'</if>
+			<if test='CLASS_TYPE == "CONN_COL" '>
+				AND SEAL_TYPE !='-'
+				AND MATERIAL !='-'
+				AND API_PLAN !='-'
+			</if>
+			) A
+		ORDER BY A.CLASS	
+	</insert>
+	
+	<!-- 모델생성과 관련된 product 정보를 Model Attr Table에 저장  -->
+	<insert id="setModelAttrProductInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY PRODUCT ASC),
+						PRODUCT,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT  PRODUCT_G as PRODUCT
+			FROM M_DATA_CNV2
+			WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		) A
+		ORDER BY A.PRODUCT	
+	</insert>
+	
+	<!-- 모델생성과 관련된 Pump Type 정보를 Model Attr Table에 저장  -->
+	<insert id="setModelAttrPumpTypeInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY PUMP_TYPE ASC),
+						PUMP_TYPE,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT  PUMP_TYPE_G as PUMP_TYPE
+			FROM M_DATA_CNV2
+			WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		) A
+		ORDER BY A.PUMP_TYPE	
+	</insert>
+	
+	<!-- 모델생성과 관련된 Equip Type 정보를 Model Attr Table에 저장  -->
+	<insert id="setModelAttrEquipTypeInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY EQUIP_TYPE ASC),
+						EQUIP_TYPE,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT  EQUIP_TYPE as EQUIP_TYPE
+			FROM M_DATA_CNV2
+			WHERE EQUIP_TYPE != 'Comp.' <!-- Comp. 항목은 추천대상에서 제외 -->
+		) A
+		ORDER BY A.EQUIP_TYPE	
+	</insert>
+	
+	<!-- 모델생성과 관련된 Code Group 정보를 Model Attr Table에 저장  -->
+	<insert id="setModelAttrGrpCodeInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,
+			V_VAL1, V_VAL2,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY GRP ASC, GRP_SUB ASC),
+						GRP, GRP_SUB,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT  upper(A.CODE_VALUE) AS GRP, 
+		                   upper(B.DETAIL_VALUES) AS GRP_SUB
+			FROM TB_FEA_CODE A 
+				JOIN TB_FEA_GRP_INFO  B ON A.CODE_NAME= B.FEA_CODE
+				JOIN TB_CODE  C ON A.PARENT_CODE=C.CODE_NAME
+			WHERE C.CODE_VALUE=#{GRP_CODE}	
+		) A
+		ORDER BY A.GRP, A.GRP_SUB	
+	</insert>
+	
+	<insert id="setModelAttrProductHierInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,
+			V_VAL1, V_VAL2, V_VAL3,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY LEVEL_1 ASC, LEVEL_2 ASC, LEVEL_3 ASC),
+						upper(LEVEL_1) as LEVEL_1, 
+						upper(LEVEL_2) as LEVEL_2,
+						upper(LEVEL_3) as LEVEL_3,
+					    GETDATE(), #{USER_ID}, GETDATE(),  #{USER_ID} 
+		FROM ( 
+			SELECT  A.LEVEL_1,A.LEVEL_2,A.LEVEL_3
+			FROM TB_FEA_HIERA A 
+		) A
+		ORDER BY A.LEVEL_1, A.LEVEL_2, A.LEVEL_3
+	</insert>
+	
+	
+	<!-- 모델생성정보 Update -->
+	<update id="setModelInfoSave"  parameterType="map">
+		UPDATE TB_ML_MODEL_MNG
+		SET TITLE=#{TITLE}
+		WHERE MODEL_ID=#{MODEL_ID}
+	</update>
+
+	<!-- Txt to Number 변환정보 -->
+	<select id="getTransTextVal"  parameterType="map" resultType="map">
+		SELECT GRP_CODE, VAL_CODE,
+		              case when V_VAL IS NOT NULL THEN V_VAL
+		                      else rtrim(convert(decimal(6,4),N_VAL))  end as VAL 
+		FROM TB_TRANS_TXT_VAL
+		ORDER BY ORD
+	</select>
+	
+	<!-- Model Attr Table의 Nominal 정보 조회 -->
+	<select id="getPredictNominalList" parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT V_VAL1 as V_VAL1
+		FROM TB_ML_MODEL_ATTR
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND ATTR_TYPE=#{ATTR_TYPE}
+		ORDER BY SEQ
+	</select>
+	
+	<!-- 빌드타입에 따른 가장 최근모델 ID 반환 -->
+	<select id="getModelId" parameterType="map" resultType="string">
+		SELECT MAX(MODEL_ID) as MODEL_ID
+		FROM TB_ML_MODEL_MNG
+		WHERE ATTR1 =#{ATTR1}
+	</select>
+	
+	<!-- 모델아이디에 따른 모델정보 반환 -->
+	<select id="getModelInfo" parameterType="map" resultType="map">
+		SELECT *
+		FROM TB_ML_MODEL_MNG
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND MODEL_SUB_TYPE =#{CLASS_TYPE}
+	</select>
+		
+	<!-- Model 생성시 저장된 Code Group 정보를 가져온다 -->
+	<select id="getModelGroupCodeList"  parameterType="map" resultType="map">
+		SELECT V_VAL1 as GRP, V_VAL2 as GRP_SUB
+		FROM TB_ML_MODEL_ATTR
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND ATTR_TYPE=#{ATTR_TYPE}
+		ORDER BY LEN(V_VAL2) desc
+	</select>
+	
+	<!-- Model 생성시 저장된 Code Group Hier 정보를 가져온다 -->
+	<select id="getModelProductGroupCodeHierList"  parameterType="map" resultType="map">
+		SELECT V_VAL1 as LV1, V_VAL2 as LV2, V_VAL3 as LV3
+		FROM TB_ML_MODEL_ATTR
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND ATTR_TYPE=#{ATTR_TYPE}
+		ORDER BY 1,2,3
+	</select>
+	
+	<!-- =============== -->
+	<!--  데이터처리 용 start -->
+	
+	<update id="removeCNV1">
+		TRUNCATE TABLE M_DATA_CNV1
+	</update>
+	
+	<update id="removeCNV2">
+		TRUNCATE TABLE M_DATA_CNV2
+	</update>
+	
+	<select id="getOrgList"  resultType="map">
+		SELECT * from M_DATA_ORG
+		<!-- where idx_no is not null -->
+	</select>
+	
+	<select id="getTransUnitCodeInfo"  resultType="map">
+		SELECT GRP_CODE,  
+					  replace(replace(rtrim(UNIT_CODE), char(13), ''), char(10), '') as UNIT_CODE, 
+		              replace(replace(rtrim(UNIT_NAME), char(13), ''), char(10), '') as UNIT_NAME,
+		              replace(replace(rtrim(EX_UNIT_NAME), char(13), ''), char(10), '') as EX_UNIT_NAME,
+		              TRANS_CODE, DESCRIPTION, CALC_STR
+		from TB_TRANS_UNIT_CODE
+	</select>
+	
+	<select id="getUnitCodeRelInfo"  resultType="map">
+		SELECT * from TB_UNIT_CODE_REL
+		WHERE TABLE_NAME='M_DATA_CNV1'
+	</select>
+	
+	<select id="getTransTxtValInfo"  resultType="map">
+		SELECT * from TB_TRANS_TXT_VAL
+	</select>
+	
+	<select id="getSsuChglInfo"  resultType="map">
+		SELECT * from M_VISC_SSU_CHG
+		ORDER BY SSU desc
+	</select>
+	
+	<select id="getGroupingInfo"  parameterType="string"  resultType="map">
+		SELECT  C.CODE_VALUE as COL_VALUE, 
+		              A.CODE_NAME as GRP_CODE, 
+		              upper(A.CODE_VALUE) as GRP, 
+		              upper(B.DETAIL_VALUES) as GRP_SUB
+		FROM TB_FEA_CODE A 
+			JOIN TB_FEA_GRP_INFO  B ON A.CODE_NAME= B.FEA_CODE
+			JOIN TB_CODE  C ON A.PARENT_CODE=C.CODE_NAME
+		WHERE C.CODE_VALUE=#{value}
+		--ORDER BY A.CODE_VALUE	, B.DETAIL_VALUES
+		ORDER BY LEN(B.DETAIL_VALUES) desc, B.DETAIL_VALUES
+	</select>
+	
+	<select id="getGroupingHier" parameterType="string"  resultType="map">
+		SELECT upper(LEVEL_1) as LV1, 
+		              upper(LEVEL_2) as LV2, 
+		              upper(LEVEL_3) as LV3
+		FROM TB_FEA_HIERA
+		ORDER BY 1,2,3
+	</select>
+	
+	<insert id="insertDataCnv1" parameterType="map">
+		INSERT INTO M_DATA_CNV1 (
+			IDX_NO,DWG_NO,DWG_REV,SHEET_NO,FORM_NO,
+			JOB_NO,BOM,DATA_LAST,SEAL_TYPE,SEAL_SIZE,
+			SEAL_CONFIG,MATERIAL,EQUIP_MFG,EQUIP_MODEL,ITEM_NO,
+			CUSTOMER,ADDRESS1,ULTIMATE_USER,ADDRESS2,PRODUCT,
+			TEMP_NOR,TEMP_MIN,TEMP_MAX,TEMP_UNIT,SPEC_GRAVITY_NOR,
+			SPEC_GRAVITY_MIN,SPEC_GRAVITY_MAX,VISC_NOR,VISC_MIN,VISC_MAX,
+			VISC_UNIT,VAP_PRES_NOR,VAP_PRES_MIN,VAP_PRES_MAX,VAP_PRES_UNIT,
+			SEAL_CHAM_NOR,SEAL_CHAM_MIN,SEAL_CHAM_MAX,SEAL_CHAM_UNIT,SUCT_PRES_NOR,
+			SUCT_PRES_MIN,SUCT_PRES_MAX,SUCT_PRES_UNIT,DISCH_PRES_NOR,DISCH_PRES_MIN,
+			DISCH_PRES_MAX,DISCH_PRES_UNIT,RPM_NOR,RPM_MIN,RPM_MAX,
+			EQUIP_ITEM_NO,API_PLAN,API_CODE,SEAL_CODE,SERVICE,
+			EXTERNAL_FLUID,BARRIER_BUFFER_FLUID,BARR_PRES_PRES,BARR_PRES_UNIT,PO_NO,
+			PROJECT,SHAFT_SIZE,SHAFT_UNIT,EQUIP_TYPE,PUMP_TYPE,
+			PRODUCT_G, PUMP_TYPE_G,
+			EQUIP_GRP, ULTI_USER_GRP
+		) VALUES 
+		<foreach item="cnvInfo" index="index" collection="list" open="" separator="," close="">
+		(
+			 #{cnvInfo.IDX_NO},#{cnvInfo.DWG_NO},#{cnvInfo.DWG_REV},#{cnvInfo.SHEET_NO},#{cnvInfo.FORM_NO}
+			,#{cnvInfo.JOB_NO},#{cnvInfo.BOM},#{cnvInfo.DATA_LAST},#{cnvInfo.SEAL_TYPE},#{cnvInfo.SEAL_SIZE}
+			,#{cnvInfo.SEAL_CONFIG},#{cnvInfo.MATERIAL},#{cnvInfo.EQUIP_MFG},#{cnvInfo.EQUIP_MODEL},#{cnvInfo.ITEM_NO}
+			,#{cnvInfo.CUSTOMER},#{cnvInfo.ADDRESS1},#{cnvInfo.ULTIMATE_USER},#{cnvInfo.ADDRESS2},#{cnvInfo.PRODUCT}
+			,#{cnvInfo.TEMP_NOR},#{cnvInfo.TEMP_MIN},#{cnvInfo.TEMP_MAX},#{cnvInfo.TEMP_UNIT},#{cnvInfo.SPEC_GRAVITY_NOR}
+			,#{cnvInfo.SPEC_GRAVITY_MIN},#{cnvInfo.SPEC_GRAVITY_MAX},#{cnvInfo.VISC_NOR},#{cnvInfo.VISC_MIN},#{cnvInfo.VISC_MAX}
+			,#{cnvInfo.VISC_UNIT},#{cnvInfo.VAP_PRES_NOR},#{cnvInfo.VAP_PRES_MIN},#{cnvInfo.VAP_PRES_MAX},#{cnvInfo.VAP_PRES_UNIT}
+			,#{cnvInfo.SEAL_CHAM_NOR},#{cnvInfo.SEAL_CHAM_MIN},#{cnvInfo.SEAL_CHAM_MAX},#{cnvInfo.SEAL_CHAM_UNIT},#{cnvInfo.SUCT_PRES_NOR}
+			,#{cnvInfo.SUCT_PRES_MIN},#{cnvInfo.SUCT_PRES_MAX},#{cnvInfo.SUCT_PRES_UNIT},#{cnvInfo.DISCH_PRES_NOR},#{cnvInfo.DISCH_PRES_MIN}
+			,#{cnvInfo.DISCH_PRES_MAX},#{cnvInfo.DISCH_PRES_UNIT},#{cnvInfo.RPM_NOR},#{cnvInfo.RPM_MIN},#{cnvInfo.RPM_MAX}
+			,#{cnvInfo.EQUIP_ITEM_NO},#{cnvInfo.API_PLAN},#{cnvInfo.API_CODE},#{cnvInfo.SEAL_CODE},#{cnvInfo.SERVICE}
+			,#{cnvInfo.EXTERNAL_FLUID},#{cnvInfo.BARRIER_BUFFER_FLUID},#{cnvInfo.BARR_PRES_PRES},#{cnvInfo.BARR_PRES_UNIT},#{cnvInfo.PO_NO}
+			,#{cnvInfo.PROJECT},#{cnvInfo.SHAFT_SIZE},#{cnvInfo.SHAFT_UNIT},#{cnvInfo.EQUIP_TYPE},#{cnvInfo.PUMP_TYPE}
+			,#{cnvInfo.PRODUCT_G}, #{cnvInfo.PUMP_TYPE_G}
+			,#{cnvInfo.EQUIP_GRP}, #{cnvInfo.ULTI_USER_GRP}
+		)
+		</foreach>
+	</insert>
+	
+	<insert id="insertDataCnv2" parameterType="map">
+		INSERT INTO M_DATA_CNV2 (
+			IDX_NO,DWG_NO,DWG_REV,SHEET_NO,FORM_NO,
+			JOB_NO,BOM,DATA_LAST,SEAL_TYPE,SEAL_SIZE,
+			SEAL_CONFIG,MATERIAL,EQUIP_MFG,EQUIP_MODEL,ITEM_NO,
+			CUSTOMER,ADDRESS1,ULTIMATE_USER,ADDRESS2,PRODUCT,
+			TEMP_NOR,TEMP_MIN,TEMP_MAX,TEMP_UNIT,SPEC_GRAVITY_NOR,
+			SPEC_GRAVITY_MIN,SPEC_GRAVITY_MAX,VISC_NOR,VISC_MIN,VISC_MAX,
+			VISC_UNIT,VAP_PRES_NOR,VAP_PRES_MIN,VAP_PRES_MAX,VAP_PRES_UNIT,
+			SEAL_CHAM_NOR,SEAL_CHAM_MIN,SEAL_CHAM_MAX,SEAL_CHAM_UNIT,SUCT_PRES_NOR,
+			SUCT_PRES_MIN,SUCT_PRES_MAX,SUCT_PRES_UNIT,DISCH_PRES_NOR,DISCH_PRES_MIN,
+			DISCH_PRES_MAX,DISCH_PRES_UNIT,RPM_NOR,RPM_MIN,RPM_MAX,
+			EQUIP_ITEM_NO,API_PLAN,API_CODE,SEAL_CODE,SERVICE,
+			EXTERNAL_FLUID,BARRIER_BUFFER_FLUID,BARR_PRES_PRES,BARR_PRES_UNIT,PO_NO,
+			PROJECT,SHAFT_SIZE,SHAFT_UNIT,EQUIP_TYPE,PUMP_TYPE,
+			PRODUCT_G, PUMP_TYPE_G,
+			EQUIP_GRP, ULTI_USER_GRP
+		) VALUES 
+		<foreach item="cnvInfo" index="index" collection="list" open="" separator="," close="">
+		(
+			 #{cnvInfo.IDX_NO},#{cnvInfo.DWG_NO},#{cnvInfo.DWG_REV},#{cnvInfo.SHEET_NO},#{cnvInfo.FORM_NO}
+			,#{cnvInfo.JOB_NO},#{cnvInfo.BOM},#{cnvInfo.DATA_LAST},#{cnvInfo.SEAL_TYPE},#{cnvInfo.SEAL_SIZE}
+			,#{cnvInfo.SEAL_CONFIG},#{cnvInfo.MATERIAL},#{cnvInfo.EQUIP_MFG},#{cnvInfo.EQUIP_MODEL},#{cnvInfo.ITEM_NO}
+			,#{cnvInfo.CUSTOMER},#{cnvInfo.ADDRESS1},#{cnvInfo.ULTIMATE_USER},#{cnvInfo.ADDRESS2},#{cnvInfo.PRODUCT}
+			,#{cnvInfo.TEMP_NOR},#{cnvInfo.TEMP_MIN},#{cnvInfo.TEMP_MAX},#{cnvInfo.TEMP_UNIT},#{cnvInfo.SPEC_GRAVITY_NOR}
+			,#{cnvInfo.SPEC_GRAVITY_MIN},#{cnvInfo.SPEC_GRAVITY_MAX},#{cnvInfo.VISC_NOR},#{cnvInfo.VISC_MIN},#{cnvInfo.VISC_MAX}
+			,#{cnvInfo.VISC_UNIT},#{cnvInfo.VAP_PRES_NOR},#{cnvInfo.VAP_PRES_MIN},#{cnvInfo.VAP_PRES_MAX},#{cnvInfo.VAP_PRES_UNIT}
+			,#{cnvInfo.SEAL_CHAM_NOR},#{cnvInfo.SEAL_CHAM_MIN},#{cnvInfo.SEAL_CHAM_MAX},#{cnvInfo.SEAL_CHAM_UNIT},#{cnvInfo.SUCT_PRES_NOR}
+			,#{cnvInfo.SUCT_PRES_MIN},#{cnvInfo.SUCT_PRES_MAX},#{cnvInfo.SUCT_PRES_UNIT},#{cnvInfo.DISCH_PRES_NOR},#{cnvInfo.DISCH_PRES_MIN}
+			,#{cnvInfo.DISCH_PRES_MAX},#{cnvInfo.DISCH_PRES_UNIT},#{cnvInfo.RPM_NOR},#{cnvInfo.RPM_MIN},#{cnvInfo.RPM_MAX}
+			,#{cnvInfo.EQUIP_ITEM_NO},#{cnvInfo.API_PLAN},#{cnvInfo.API_CODE},#{cnvInfo.SEAL_CODE},#{cnvInfo.SERVICE}
+			,#{cnvInfo.EXTERNAL_FLUID},#{cnvInfo.BARRIER_BUFFER_FLUID},#{cnvInfo.BARR_PRES_PRES},#{cnvInfo.BARR_PRES_UNIT},#{cnvInfo.PO_NO}
+			,#{cnvInfo.PROJECT},#{cnvInfo.SHAFT_SIZE},#{cnvInfo.SHAFT_UNIT},#{cnvInfo.EQUIP_TYPE},#{cnvInfo.PUMP_TYPE}
+			,#{cnvInfo.PRODUCT_G}, #{cnvInfo.PUMP_TYPE_G}
+			,#{cnvInfo.EQUIP_GRP}, #{cnvInfo.ULTI_USER_GRP}
+		)
+		</foreach>
+	</insert>
+	
+	
+	<select id="getUnitInfoList" parameterType="map" resultType="map">
+		SELECT distinct GRP_CODE, 
+		              replace(replace(rtrim(UNIT_CODE), char(13), ''), char(10), '') as UNIT_CODE, 
+		              replace(replace(rtrim(UNIT_NAME), char(13), ''), char(10), '') as UNIT_NAME,
+		              replace(replace(rtrim(EX_UNIT_NAME), char(13), ''), char(10), '') as EX_UNIT_NAME
+		FROM TB_TRANS_UNIT_CODE
+	</select>
+	
+	<select id="getUnitDefaultInfoList" parameterType="map" resultType="map">
+		SELECT COL_NAME, BASE_COL
+		FROM TB_UNIT_CODE_REL
+	</select>
+	
+	<select id="getSealTypeInfo" parameterType="map" resultType="map">
+		SELECT IDX, TYPE, SEAL_TYPE
+		FROM TB_SEAL_TYPE_T_INFO
+		WHERE TYPE = 'P'
+	</select>
+	
+	<select id="getSealTypeInfo2" parameterType="map" resultType="map">
+		SELECT IDX, TYPE, SEAL_TYPE
+		FROM TB_SEAL_TYPE_T_INFO
+		WHERE TYPE = 'A'
+	</select>
+	
+
+	<!-- 확인 후 처리 필요 -->
+
+	<select id="getPredictTrainingList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  isnull(TEMP_NOR,0) as TEMP_NOR,
+		               isnull(TEMP_MIN,0) as TEMP_MIN,
+		               isnull(TEMP_MAX,0) as TEMP_MAX,
+		               isnull(SPEC_GRAVITY_NOR,0) as SPEC_GRAVITY_NOR,
+		               isnull(SPEC_GRAVITY_MIN,0) as SPEC_GRAVITY_MIN,
+		               isnull(SPEC_GRAVITY_MAX,0) as SPEC_GRAVITY_MAX,
+		               isnull(VISC_NOR,0) as VISC_NOR, 
+		               isnull(VISC_MIN,0) as VISC_MIN, 
+		               isnull(VISC_MAX,0) as VISC_MAX, 
+		               isnull(VAP_PRES_NOR,0) as VAP_PRES_NOR,
+		               isnull(VAP_PRES_MIN,0) as VAP_PRES_MIN,
+		               isnull(VAP_PRES_MAX,0) as VAP_PRES_MAX,
+		               isnull(SEAL_CHAM_NOR,0) as SEAL_CHAM_NOR,
+		               isnull(SEAL_CHAM_MIN,0) as SEAL_CHAM_MIN,
+		               isnull(SEAL_CHAM_MAX,0) as SEAL_CHAM_MAX,
+		               replace(SEAL_TYPE,',','') as SEAL_TYPE,
+		               replace(API_PLAN,',','') as API_PLAN,
+		               replace(SEAL_TYPE,',','') +' | '+replace(MATERIAL,',','')+' | '+replace(API_PLAN,',','') as  CONN_COL
+		FROM M_DATA_CNV2
+		WHERE 1=1
+		<if test='PRODUCT_LIST != null and PRODUCT_LIST.size != 0' >
+			AND
+			<foreach collection="PRODUCT_LIST"  item="product"  open="(" close=")" separator="and">
+				 PRODUCT_G like '%' + #{product} + '%' 
+			</foreach>
+		</if>
+<!-- 		<if test='PRODUCT != null and PRODUCT != ""' >AND PRODUCT like '%' + #{PRODUCT} + '%' </if>임시처리 -->
+		<if test='equip_type != null and equip_type != ""' >AND equip_type = #{equip_type} </if> <!-- 장비타입 -->
+		<if test='PUMP_TYPE != null and PUMP_TYPE!= ""' >AND PUMP_TYPE_G = #{PUMP_TYPE}  </if><!-- 펌프타입 -->
+		
+
+	</select>
+	
+	<!--0320  TB_ML_MODEL_FEATURE_RANGE 가장최근 모델의 feature ranger 값 받아오기-->
+	<select id="getFeatureRangeList"  resultType="map">
+		SELECT
+			MODEL_ID,
+			FEATURE_COL,
+			MIN_VAL,
+			MAX_VAL
+			FROM
+			TB_ML_MODEL_FEATURE_RANGE
+			WHERE MODEL_ID = (SELECT MAX(MODEL_ID)AS MAX_MODEL_ID FROM TB_ML_MODEL_FEATURE_RANGE)
+			ORDER BY CASE FEATURE_COL
+				WHEN 'TEMP_NOR' THEN 1
+				WHEN 'TEMP_MIN' THEN 2
+				WHEN 'TEMP_MAX' THEN 3
+				WHEN 'SPEC_GRAVITY_NOR' THEN 4
+				WHEN 'SPEC_GRAVITY_MIN' THEN 5
+				WHEN 'SPEC_GRAVITY_MAX' THEN 6
+				WHEN 'VISC_NOR' THEN 7
+				WHEN 'VISC_MIN' THEN 8
+				WHEN 'VISC_MAX' THEN 9
+				WHEN 'VAP_PRES_NOR' THEN 10
+				WHEN 'VAP_PRES_MIN' THEN 11
+				WHEN 'VAP_PRES_MAX' THEN 12
+				WHEN 'SEAL_CHAM_NOR' THEN 13
+				WHEN 'SEAL_CHAM_MIN' THEN 14
+				WHEN 'SEAL_CHAM_MAX' THEN 15
+				WHEN 'RPM_NOR' THEN 16
+				WHEN 'RPM_MIN' THEN 17
+				WHEN 'RPM_MAX' THEN 18
+				WHEN 'SHAFT_SIZE' THEN 19
+				END;
+		
+	</select>
+	
+	<!--0324 Feature Range Insert to TB_ML_MODEL_FEATURE_RANGE  -->
+	<insert id="insertFeatureRange"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_FEATURE_RANGE (
+			MODEL_ID,FEATURE_COL,MIN_VAL,MAX_VAL,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		)
+		SELECT '${MODEL_ID}', '${FEATURE_COL}',
+				MIN(${FEATURE_COL})as MIN_VAL,
+				MAX(${FEATURE_COL})as MAX_VAL,
+			    GETDATE(), #{USER_ID}, GETDATE(), #{USER_ID}
+		FROM M_DATA_CNV2
+	</insert>
+	
+</mapper>

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.MLMapper">
+
+	<select id="getModelList"  parameterType="map" resultType="map">
+		SELECT *
+		FROM (
+			SELECT A.MODEL_ID, A.TITLE, A.BUILD_TYPE, A.PRODUCT_APPLY,
+							  TO_CHAR(A.CREATE_DT,'YYYY-MM-DD HH24:MI:SS') AS CREATE_DT, A.CREATE_USER,
+				              ROUND(B_SEAL_TYPE.CORRECT_RATE,10)      AS CORRECT_RATE_SEAL_TYPE,
+				              B_SEAL_TYPE.TRAINING_CNT        AS TRAINING_CNT_SEAL_TYPE,
+				              B_SEAL_TYPE.TEST_CNT                 AS TEST_CNT_SEAL_TYPE,
+				              B_SEAL_TYPE.PROCESS_TIME       AS PROCESS_TIME_SEAL_TYPE,
+				              ROUND(B_SEAL_SIZE.CORRECT_RATE,10)        AS CORRECT_RATE_SEAL_SIZE,
+				              B_SEAL_SIZE.TRAINING_CNT         AS TRAINING_CNT_SEAL_SIZE,
+				              B_SEAL_SIZE.TEST_CNT                  AS TEST_CNT_SEAL_SIZE,
+				              B_SEAL_SIZE.PROCESS_TIME         AS PROCESS_TIME_SEAL_SIZE,
+				              ROUND(B_SEAL_CONFIG.CORRECT_RATE,10) AS CORRECT_RATE_SEAL_CONFIG,
+				              B_SEAL_CONFIG.TRAINING_CNT  AS TRAINING_CNT_SEAL_CONFIG,
+				              B_SEAL_CONFIG.TEST_CNT            AS TEST_CNT_SEAL_CONFIG,
+				              B_SEAL_CONFIG.PROCESS_TIME  AS PROCESS_TIME_SEAL_CONFIG,
+				              ROUND(B_SEAL_ALL.CORRECT_RATE,10)         AS CORRECT_RATE_SEAL_ALL,
+				              B_SEAL_ALL.TRAINING_CNT           AS TRAINING_CNT_SEAL_ALL,
+				              B_SEAL_ALL.TEST_CNT                    AS TEST_CNT_SEAL_ALL,
+				              B_SEAL_ALL.PROCESS_TIME          AS PROCESS_TIME_SEAL_ALL,
+				              ROUND(B_SEAL_TYPE.CORRECT_RATE,2)
+				               ||'/'|| ROUND(B_SEAL_SIZE.CORRECT_RATE,2)
+				               ||'/'|| ROUND(B_SEAL_CONFIG.CORRECT_RATE,2)
+				               ||'/'|| ROUND(B_SEAL_All.CORRECT_RATE,2) as CORRECT_RATE_ALL  
+				FROM (
+						SELECT MODEL_ID, 
+									  MAX(TITLE) AS TITLE,
+									  MAX(ATTR1) as  BUILD_TYPE,
+									  MAX(ATTR2) as PRODUCT_APPLY,
+						              MAX(CREATE_DT) AS CREATE_DT,
+						              MAX(CREATE_USER) AS CREATE_USER
+						FROM TB_ML_MODEL_MNG
+						GROUP BY MODEL_ID
+				) A 
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  MAX(CORRECT_RATE) AS CORRECT_RATE,
+					 			  MAX(TRAINING_CNT) AS TRAINING_CNT,
+					 			  MAX(TEST_CNT) AS TEST_CNT,
+					 			  MAX(PROCESS_TIME) AS PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'SEAL_TYPE'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_SEAL_TYPE ON A.MODEL_ID = B_SEAL_TYPE.MODEL_ID
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  MAX(CORRECT_RATE) AS CORRECT_RATE,
+					 			  MAX(TRAINING_CNT) AS TRAINING_CNT,
+					 			  MAX(TEST_CNT) AS TEST_CNT,
+					 			  MAX(PROCESS_TIME) AS PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'SEAL_SIZE'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_SEAL_SIZE ON A.MODEL_ID = B_SEAL_SIZE.MODEL_ID
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  MAX(CORRECT_RATE) AS CORRECT_RATE,
+					 			  MAX(TRAINING_CNT) AS TRAINING_CNT,
+					 			  MAX(TEST_CNT) AS TEST_CNT,
+					 			  MAX(PROCESS_TIME) AS PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'SEAL_CONFIG'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_SEAL_CONFIG ON A.MODEL_ID = B_SEAL_CONFIG.MODEL_ID
+				LEFT JOIN (
+					SELECT MODEL_ID, MODEL_SUB_TYPE,  
+					 			  MAX(CORRECT_RATE) AS CORRECT_RATE,
+					 			  MAX(TRAINING_CNT) AS TRAINING_CNT,
+					 			  MAX(TEST_CNT) AS TEST_CNT,
+					 			  MAX(PROCESS_TIME) AS PROCESS_TIME
+					FROM TB_ML_MODEL_MNG
+					WHERE MODEL_SUB_TYPE = 'SEAL_ALL'
+					GROUP BY MODEL_ID,  MODEL_SUB_TYPE
+				) B_SEAL_ALL ON A.MODEL_ID = B_SEAL_ALL.MODEL_ID
+				<where>
+					<if test='MODEL_ID != null and MODEL_ID != ""' >AND A.MODEL_ID=#{MODEL_ID}</if>
+					<if test='DATE_FR != null and DATE_FR != ""' >AND TO_CHAR(A.CREATE_DT,'YYYYMMDD') >=#{DATE_FR}</if>
+					<if test='DATE_TO != null and DATE_TO != ""' >AND TO_CHAR(A.CREATE_DT,'YYYYMMDD') <![CDATA[<=]]>#{DATE_TO}</if>
+				</where>
+				ORDER BY A.CREATE_DT DESC
+			) A
+			<where>
+				<if test='IS_RECENT_DATA != null and IS_RECENT_DATA != "" and IS_RECENT_DATA == "Y" '>AND ROWNUM=1</if>
+			</where>
+	</select>
+	
+	<select id="getModelTrainingList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  
+					  <if test='product_apply_check.equals(true) '>replace(NVL(PRODUCT,'-'),',','') as PRODUCT,</if>	
+		               NVL(TEMP_NOR,0) AS TEMP_NOR,
+		               NVL(TEMP_MIN,0) AS TEMP_MIN,
+		               NVL(TEMP_MAX,0) AS TEMP_MAX,
+		               NVL(SPEC_GRAVITY_NOR,0) AS SPEC_GRAVITY_NOR,
+		               NVL(SPEC_GRAVITY_MIN,0) AS SPEC_GRAVITY_MIN,
+		               NVL(SPEC_GRAVITY_MAX,0) AS SPEC_GRAVITY_MAX,
+		               NVL(VISC_NOR,0) AS VISC_NOR, 
+		               NVL(VISC_MIN,0) AS VISC_MIN, 
+		               NVL(VISC_MAX,0) AS VISC_MAX, 
+		               NVL(SEAL_CHAM_NOR,0) AS SEAL_CHAM_NOR,
+		               NVL(SEAL_CHAM_MIN,0) AS SEAL_CHAM_MIN,
+		               NVL(SEAL_CHAM_MAX,0) AS SEAL_CHAM_MAX,
+		               <if test='CLASS_TYPE == "SEAL_TYPE" '>NVL(SEAL_TYPE,'-') as SEAL_TYPE,</if> 
+					   <if test='CLASS_TYPE == "SEAL_SIZE" '>NVL(SEAL_SIZE,'-') as SEAL_SIZE,</if>
+					   <if test='CLASS_TYPE == "SEAL_CONFIG" '>NVL(SEAL_CONFIG,'-') as  SEAL_CONFIG,</if>	
+					   <if test='CLASS_TYPE == "SEAL_ALL" '>SEAL_TYPE ||' / '||  SEAL_SIZE ||' / '|| SEAL_CONFIG as  SEAL_ALL,</if>
+					   '' as TMP
+		FROM M_DATA_CNV1
+		WHERE 1=1
+		<if test='CLASS_TYPE == "SEAL_TYPE" '>AND SEAL_TYPE IS NOT NULL</if>
+		<if test='CLASS_TYPE == "SEAL_SIZE" '>AND SEAL_SIZE IS NOT NULL</if>
+		<if test='CLASS_TYPE == "SEAL_CONFIG" '>AND SEAL_CONFIG IS NOT NULL</if>
+		<if test='CLASS_TYPE == "SEAL_ALL" '>
+			AND SEAL_TYPE IS NOT NULL
+			AND SEAL_SIZE IS NOT NULL
+			AND SEAL_CONFIG IS NOT NULL
+		</if>
+		<if test='CLASS_TYPE == "SEAL_TYPE" '>ORDER BY SEAL_TYPE</if>
+		<if test='CLASS_TYPE == "SEAL_SIZE" '>ORDER BY SEAL_SIZE</if>
+		<if test='CLASS_TYPE == "SEAL_CONFIG" '>ORDER BY SEAL_CONFIG</if>
+		<if test='CLASS_TYPE == "SEAL_ALL" '>ORDER BY SEAL_TYPE ||' / '||  SEAL_SIZE ||' / '|| SEAL_CONFIG</if>
+	</select>
+	
+	<select id="getProductList"  parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT  replace(NVL(PRODUCT,'-'),',','') as PRODUCT
+		FROM M_DATA_CNV1
+		ORDER BY replace(NVL(PRODUCT,'-'),',','')
+	</select>
+	
+	<insert id="setModelInfo" parameterType="map">
+		INSERT INTO TB_ML_MODEL_MNG(
+			MODEL_ID,
+			MODEL_TYPE,
+			MODEL_SUB_TYPE,
+			CORRECT_RATE,
+			CORR_COEF,
+			MEAN_ABS_ERR,
+			RMSE,
+			RAE,
+			RRSE,
+			TRAINING_CNT,
+			TEST_CNT,
+			MODEL_LOC,
+			REMARKS,
+			CREATE_DT,
+			CREATE_USER,
+			UPDATE_DT,
+			UPDATE_USER,
+			TITLE,
+			PROCESS_TIME,
+			ATTR1, 
+			ATTR2, 
+			ATTR3
+		) VALUES (
+			#{MODEL_ID},
+			#{MODEL_TYPE},
+			#{MODEL_SUB_TYPE},
+			#{CORRECT_RATE},
+			#{CORR_COEF},
+			#{MEAN_ABS_ERR},
+			#{RMSE},
+			#{RAE},
+			#{RRSE},
+			#{TRAINING_CNT},
+			#{TEST_CNT},
+			#{MODEL_LOC},
+			#{REMARKS},
+			SYSDATE,
+			#{USER_ID},
+			SYSDATE,
+			#{USER_ID},
+			#{TITLE},
+			#{PROCESS_TIME},
+			#{ATTR1}, 
+			#{ATTR2}, 
+			#{ATTR3}
+		)
+	</insert> 
+	
+	
+	
+	<select id="getPredictNominalList" parameterType="map" resultType="java.util.LinkedHashMap">
+		SELECT V_VAL1 as V_VAL1
+		FROM TB_ML_MODEL_ATTR
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND ATTR_TYPE=#{ATTR_TYPE}
+		ORDER BY 1
+	</select>
+	
+	<select id="getModelInfo" parameterType="map" resultType="map">
+		SELECT *
+		FROM TB_ML_MODEL_MNG
+		WHERE MODEL_ID=#{MODEL_ID}
+		AND MODEL_SUB_TYPE =#{CLASS_TYPE}
+	</select>
+
+	<select id="getDBbyPredictFeature" parameterType="map" resultType="map">
+		SELECT SEAL_TYPE, SEAL_SIZE, SEAL_CONFIG,
+		              TEMP_NOR, TEMP_MIN, TEMP_MAX,
+		              SPEC_GRAVITY_NOR,SPEC_GRAVITY_MIN,SPEC_GRAVITY_MAX,
+		              VISC_NOR,VISC_MIN,VISC_MAX,
+		              SEAL_CHAM_NOR,SEAL_CHAM_MIN,SEAL_CHAM_MAX
+		FROM M_DATA_CNV1
+		WHERE 1=1
+		<if test='TEMP_NOR != null and TEMP_NOR != ""' >AND TEMP_NOR=#{TEMP_NOR}</if>
+		<if test='TEMP_MIN != null and TEMP_MIN != ""' >AND TEMP_MIN=#{TEMP_MIN}</if>
+		<if test='TEMP_MAX != null and TEMP_MAX != ""' >AND TEMP_MAX=#{TEMP_MAX}</if>
+		<if test='SPEC_GRAVITY_NOR != null and SPEC_GRAVITY_NOR != ""' >AND SPEC_GRAVITY_NOR=#{SPEC_GRAVITY_NOR}</if>
+		<if test='SPEC_GRAVITY_MIN != null and SPEC_GRAVITY_MIN != ""' >AND SPEC_GRAVITY_MIN=#{SPEC_GRAVITY_MIN}</if>
+		<if test='SPEC_GRAVITY_MAX != null and SPEC_GRAVITY_MAX != ""' >AND SPEC_GRAVITY_MAX=#{SPEC_GRAVITY_MAX}</if>
+		<if test='VISC_NOR != null and VISC_NOR != ""' >AND VISC_NOR=#{VISC_NOR}</if>
+		<if test='TEMP_NOR != null and TEMP_NOR != ""' >AND TEMP_NOR=#{TEMP_NOR}</if>
+		<if test='VISC_MIN != null and VISC_MIN != ""' >AND VISC_MIN=#{VISC_MIN}</if>
+		<if test='VISC_MAX != null and VISC_MAX != ""' >AND VISC_MAX=#{VISC_MAX}</if>
+		<if test='SEAL_CHAM_NOR != null and SEAL_CHAM_NOR != ""' >AND SEAL_CHAM_NOR=#{SEAL_CHAM_NOR}</if>
+		<if test='SEAL_CHAM_MIN != null and SEAL_CHAM_MIN != ""' >AND SEAL_CHAM_MIN=#{SEAL_CHAM_MIN}</if>
+		<if test='SEAL_CHAM_MAX != null and SEAL_CHAM_MAX != ""' >AND SEAL_CHAM_MAX=#{SEAL_CHAM_MAX}</if>
+	<!-- 	
+		NVL(TEMP_NOR,0)=NVL(#{TEMP_NOR},0)
+		AND NVL(TEMP_MIN,0)=NVL(#{TEMP_MIN},0)
+		AND NVL(TEMP_MAX,0)=NVL(#{TEMP_MAX},0)
+		AND NVL(SPEC_GRAVITY_NOR,0)=NVL(#{SPEC_GRAVITY_NOR},0)
+		AND NVL(SPEC_GRAVITY_MIN,0)=NVL(#{SPEC_GRAVITY_MIN},0)
+		AND NVL(SPEC_GRAVITY_MAX,0)=NVL(#{SPEC_GRAVITY_MAX},0)
+		AND NVL(VISC_NOR,0)=NVL(#{VISC_NOR},0)
+		AND NVL(VISC_MIN,0)=NVL(#{VISC_MIN},0)
+		AND NVL(VISC_MAX,0)=NVL(#{VISC_MAX},0)
+		AND NVL(SEAL_CHAM_NOR,0)=NVL(#{SEAL_CHAM_NOR},0)
+		AND NVL(SEAL_CHAM_MIN,0)=NVL(#{SEAL_CHAM_MIN},0)
+		AND NVL(SEAL_CHAM_MAX,0)=NVL(#{SEAL_CHAM_MAX},0)  -->
+	</select>
+	
+	<insert id="setModelAttrInfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY CLASS ASC),
+						CLASS,
+					    SYSDATE, #{USER_ID}, SYSDATE,  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT
+				<if test='CLASS_TYPE == "SEAL_TYPE" '>SEAL_TYPE as CLASS</if>
+				<if test='CLASS_TYPE == "SEAL_SIZE" '>SEAL_SIZE as CLASS</if>
+				<if test='CLASS_TYPE == "SEAL_CONFIG" '>SEAL_CONFIG as CLASS</if>
+				<if test='CLASS_TYPE == "SEAL_ALL" '>SEAL_TYPE ||' / '||  SEAL_SIZE ||' / '|| SEAL_CONFIG as CLASS</if>
+			FROM M_DATA_CNV1
+			<where>
+				<if test='CLASS_TYPE == "SEAL_TYPE" '>AND SEAL_TYPE IS NOT NULL</if>
+				<if test='CLASS_TYPE == "SEAL_SIZE" '>AND SEAL_SIZE IS NOT NULL</if>
+				<if test='CLASS_TYPE == "SEAL_CONFIG" '>AND SEAL_CONFIG IS NOT NULL</if>
+				<if test='CLASS_TYPE == "SEAL_ALL" '>
+					AND SEAL_TYPE IS NOT NULL
+					AND SEAL_SIZE IS NOT NULL
+					AND SEAL_CONFIG IS NOT NULL
+				</if>
+			</where>
+			) A
+		ORDER BY A.CLASS	
+	</insert>
+	
+	
+	<insert id="setModelAttrProductnfo"  parameterType="map" >
+		INSERT INTO TB_ML_MODEL_ATTR (
+			MODEL_ID,ATTR_TYPE,SEQ,V_VAL1,
+			CREATE_DT,CREATE_USER,UPDATE_DT,UPDATE_USER
+		) 
+		SELECT '${MODEL_ID}', '${ATTR_TYPE}',
+						ROW_NUMBER() OVER(ORDER BY PRODUCT ASC),
+						PRODUCT,
+					    SYSDATE, #{USER_ID}, SYSDATE,  #{USER_ID} 
+		FROM ( 
+			SELECT DISTINCT  replace(NVL(PRODUCT,'-'),',','') as PRODUCT
+			FROM M_DATA_CNV1
+		) A
+		ORDER BY A.PRODUCT	
+	</insert>
+
+	<update id="setModelInfoSave"  parameterType="map">
+		UPDATE TB_ML_MODEL_MNG
+		SET TITLE=#{TITLE}
+		WHERE MODEL_ID=#{MODEL_ID}
+	</update>
+
+	<select id="getTransTextVal"  parameterType="map" resultType="map">
+		SELECT GRP_CODE, VAL_CODE,
+		              CASE WHEN V_VAL IS NOT NULL THEN V_VAL
+		              ELSE rtrim(to_char(N_VAL,'FM990.99999'),'.')  END AS VAL 
+		FROM TB_TRANS_TXT_VAL
+		ORDER BY ORD
+	</select>
+	
+</mapper>

@@ -1,0 +1,148 @@
+div.draggable {
+	width: 300px;
+	border: none;
+	margin-top: 10px;
+}
+
+.ui-accordion-header,.ui-accordion-header-active,.ui-accordion-header-collapsed{
+	border: 1px solid lightgray !important;
+    background: #e3f1f7 50% 50% repeat-x;
+    font-weight: bold !important;
+    color: black !important;
+}
+
+.ui-accordion-content{
+	border: 1px solid lightgray !important;
+}
+
+#maindiv::-webkit-scrollbar {
+	width: 5px;
+}
+#maindiv::-webkit-scrollbar-thumb {
+	background-color: #c3c3c3;
+}
+#maindiv::-webkit-scrollbar-track {
+	background-color: #f3f3f3;
+}
+
+.modal-olap {
+	max-width : 1800px !important;
+	height : 900px !important;
+}
+
+.selected-cell{
+	opacity:0.2;
+}
+
+.div_diagram_menu{
+	width:140px;
+	height:50px;
+	position:absolute;
+	display:none;
+	padding:2px;
+}
+
+.diagram-link-message{
+	width:120px;
+	height:30px;
+	border:1px solid black;
+	background-color : lightblue;
+	display:none;
+}
+
+.diagram-btn{
+	float:left;
+	width:30px;
+	height:30px;
+	border:1px solid black;
+	margin-right:4px;
+	cursor:pointer;
+}
+
+.modal-header{
+	padding : 5px;
+	margin-right :10px;
+}
+
+.draggable {
+   	font: 16px sans-serif;
+   	width: 140px;
+   	height: 20px;
+   	text-align: left;
+	/* background: white; */
+    cursor: move;
+    margin-top: 20px;
+    border: 1px solid black;
+}
+
+.dropped {
+   	text-align: center;
+	border-radius: 10px;
+	background-color: white;
+}
+
+#myDiagramDiv {
+	background-image: url("/images/common/ci/grid2.png");
+	background-repeat: repeat;
+	margin-right: 5px;
+	flex-grow: 1; 
+}
+
+#maindiv{
+	border : 1px solid grey;
+	margin-right: 10px;
+}
+	
+#property-browser{
+  width:20%;
+  background-color:#eee;
+} 
+
+/*오른쪽클릭  */
+.rightmenu {
+	display: none;
+  	position: absolute;
+  	width: 200px;
+  	margin: 0;
+  	padding: 0;
+  	background: #FFFFFF;
+  	border-radius: 5px;
+  	list-style: none;
+  	box-shadow: 0 15px 35px rgba(50,50,90,0.1),0 5px 15px rgba(0,0,0,0.07);
+  	overflow: hidden;
+  	z-index: 999999;
+}
+
+.rightmenu li {
+  	border-left: 3px solid transparent;
+  	transition: ease .2s;
+}
+
+.rightmenu li a {
+  	display: block;
+  	padding: 10px;
+  	color: #B0BEC5;
+  	text-decoration: none;
+  	transition: ease .2s;
+}
+
+.rightmenu li:hover {
+  	background: #499df7;
+  	border-left: 3px solid #0065d2;
+}
+
+.rightmenu li:hover a {
+  	color: #000000;
+}
+
+.connected hober {
+	color : #FFFFFF
+}
+
+#div_source,#div_control,#div_target{
+	height:600px;
+}
+
+#div_control .container{
+	overflow-x:hidden;	
+}

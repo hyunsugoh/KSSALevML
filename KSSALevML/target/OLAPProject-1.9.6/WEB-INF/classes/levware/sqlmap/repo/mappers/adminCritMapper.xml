@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.AdminInfoCriticaMapper">
+
+	<!-- 객체정보별 조회조건 설정여부 Result Map 작성자 강전일-->
+	<resultMap type="UserInfoVO" id="UserInfoMap">
+		<result property="tableName" column="TABLE_NAME" />
+		<result property="columnName" column="COL_NAME" />
+		<result property="qryConYn" column="QRY_CON_YN" />
+		<result property="obj_name" column="OBJ_NAME" />
+		<result property="objinfo_name" column="OBJINFO_NAME" />
+	</resultMap>
+
+	<!-- 객체정보별 조회 조건 관리 조회 -->
+	<select id="getInfoCriteria" parameterType="String" resultMap="UserInfoMap">
+    SELECT	 A.TABLE_NAME TABLE_NAME
+			,A.COL_NAME COL_NAME
+    		,(CASE WHEN A.QRY_CON_YN = 'Y' THEN 'O' ELSE 'X' END) AS  QRY_CON_YN
+			,B.OBJ_NAME OBJ_NAME
+			,A.OBJINFO_NAME OBJINFO_NAME
+		FROM TB_OBJINFO A JOIN TB_OBJECT B
+		ON A.TABLE_NAME = B.TABLE_NAME 
+     	<where> 
+	     	<if test='tableName != "" and tableName != null '>AND UPPER(A.TABLE_NAME) LIKE '%'|| UPPER(#{tableName}) ||'%' 
+			OR UPPER(A.COL_NAME) LIKE '%'|| UPPER(#{tableName}) ||'%'
+            OR UPPER(A.OBJINFO_NAME) LIKE '%'|| UPPER(#{tableName}) ||'%'
+            OR UPPER(B.OBJ_NAME) LIKE '%'|| UPPER(#{tableName}) ||'%' </if>
+     	</where>
+	</select>
+	
+		
+	<!-- 조회 조건 조회 -->
+	<select id="getInfoCondition" resultType="map">
+		SELECT
+			QRY_CON_CD 
+   			,QRY_CON_CD_NM
+		FROM TB_QRY_CON_CD
+	</select>
+	
+	    <!-- 조회조건 동적 체크 조회 -->
+	<select id="getSearchChk" parameterType="map" resultType="map">
+		SELECT
+		    A.QUERY_CON_CODE AS QRY_CON_CD
+		FROM TB_OBJINFO_QRY_CON A, TB_OBJINFO B
+		WHERE 	A.TABLE_NAME = #{TABLE_NAME}
+			AND A.COLUMN_NAME = #{COLUMN_NAME}
+			AND A.TABLE_NAME = B.TABLE_NAME 
+			AND A.COLUMN_NAME = B.COL_NAME
+	</select> 
+	
+		
+	<!-- 조회 조건 체크 된 데이터 저장 -->
+	<update id="updateConChk" parameterType="java.util.List">
+		<foreach collection="list" item="element" index="index"  separator=";" open="DECLARE BEGIN" close="; END;">
+			MERGE INTO TB_OBJINFO_QRY_CON 
+	    	USING DUAL 
+	    	ON (TABLE_NAME = #{element.tbName} AND COLUMN_NAME = #{element.columnNm} AND QUERY_CON_CODE = #{element.value})
+	    	WHEN NOT MATCHED THEN
+		    	INSERT (
+		        		TABLE_NAME
+			            ,COLUMN_NAME
+			            ,QUERY_CON_CODE
+		                ,CREATE_ID
+		                ,CREATE_DT
+		                ,UPDATE_ID
+		                ,UPDATE_DT
+		                ,CREATE_TM
+		                ,UPDATE_TM
+		        ) VALUES (
+			            #{element.tbName}
+			            ,#{element.columnNm}
+			            ,#{element.value}
+		                ,#{element.userId}
+		                ,to_char(SYSDATE,'yyyymmdd') 
+		                ,#{element.userId}
+		                ,to_char(SYSDATE,'yyyymmdd') 
+		                ,to_char(SYSDATE,'hh24miss')
+		                ,to_char(SYSDATE,'hh24miss')
+		        )
+	  		WHEN MATCHED THEN
+	  			UPDATE
+	    		SET     UPDATE_ID         = #{element.userId}
+	            		,UPDATE_DT         = to_char(SYSDATE,'yyyymmdd') 
+	            		,UPDATE_TM         = to_char(SYSDATE,'hh24miss')
+		</foreach>
+    </update>
+       
+    <!-- 조회 조건 언체크 삭제 -->
+	<delete id="deleteConUnChk" parameterType="java.util.List">
+		<foreach collection="list" item="element" index="index"  separator=";" open="DECLARE BEGIN" close="; END;">
+			DELETE FROM TB_OBJINFO_QRY_CON
+			WHERE TABLE_NAME = #{element.tbName} AND COLUMN_NAME = #{element.columnNm} AND QUERY_CON_CODE = #{element.value}
+		</foreach>
+	</delete>
+	
+		<!-- 조회 조건 체크 된 데이터 저장 -->
+	<update id="updateConYn" parameterType="java.util.List">
+   		UPDATE TB_OBJINFO
+   		SET     QRY_CON_YN     		= #{qryConYn}
+           		,UPDATE_ID          = #{userId}
+           		,UPDATE_DT          = to_char(SYSDATE,'yyyymmdd') 
+           		,UPDATE_TM          = to_char(SYSDATE,'hh24miss')
+           WHERE TABLE_NAME = #{tableNm} AND COL_NAME = #{columnNm}
+    </update>
+</mapper>

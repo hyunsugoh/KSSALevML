@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.MLDeployMapper">
+	<delete id="deleteDeployM" parameterType="map">
+		DELETE FROM TB_ML_DEPLOY_M
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid} 
+	</delete>
+	
+	<delete id="deleteDeployD" parameterType="map">
+		DELETE FROM TB_ML_DEPLOY_D
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid}
+	</delete>
+
+	<insert id="insertDeployM"  parameterType="map">
+		INSERT INTO TB_ML_DEPLOY_M(
+			SUB_PJT_ID, DEPLOY_ID, DEPLOY_TYPE, DEPLOY_NAME, DEPLOY_DESC, API_KEY, DEPLOY_STATUS, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)VALUES(
+			#{subpjtid}, #{deployid}, #{deploytype}, #{deploynm}, #{deploydesc}, #{apikey}, 'Running', #{userid}, getdate(), #{userid}, getdate()
+		)
+	</insert>
+	
+	<insert id="insertDeployD"  parameterType="map">
+		INSERT INTO TB_ML_DEPLOY_D(
+			SUB_PJT_ID, DEPLOY_ID, ID, MID, ORDNO, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)VALUES
+		<foreach item="item" collection="list" open="" separator="," close="">
+		(
+			#{item.subpjtid}, #{item.deployid}, #{item.id}, #{item.mid}, #{item.ordno}, #{userid}, getdate(), #{userid}, getdate()
+		)
+		</foreach>
+	</insert>
+	
+	<insert id="insertDeployLog"  parameterType="map">
+		INSERT INTO TB_ML_DEPLOY_LOG(
+			DEPLOY_ID, HOST_IP, STATUS, DATA_SIZE, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)VALUES
+		(
+			#{DEPLOY_ID}, #{HOST_IP}, #{STATUS}, #{DATA_SIZE}, #{userid}, getdate(), #{userid}, getdate()
+		)
+	</insert>
+	
+	<update id="updateDeployItemDetail"  parameterType="map">
+		UPDATE TB_ML_DEPLOY_M set
+			DEPLOY_NAME = #{DEPLOY_NAME}, 
+			DEPLOY_DESC = #{DEPLOY_DESC}, 
+			API_KEY = #{API_KEY}, 
+			DEPLOY_STATUS = #{DEPLOY_STATUS}, 
+			UPDATE_ID = #{userid}, 
+			UPDATE_DT = getdate()
+		WHERE DEPLOY_ID=#{DEPLOY_ID}
+	</update>
+	
+	<select id="getDeployList"  parameterType="map" resultType="map">
+		SELECT SUB_PJT_ID,DEPLOY_ID,DEPLOY_NAME
+		FROM TB_ML_DEPLOY_M
+		WHERE DEPLOY_STATUS='Running'
+	</select>
+	
+	<select id="getDeployListDetail"  parameterType="map" resultType="map">
+		SELECT SUB_PJT_ID,DEPLOY_ID,DEPLOY_TYPE,DEPLOY_NAME,DEPLOY_DESC,API_KEY,DEPLOY_STATUS,CONVERT(VARCHAR(10),UPDATE_DT,111) as UPDATE_DT
+		FROM TB_ML_DEPLOY_M
+	</select>
+	
+	<select id="getDeployLog"  parameterType="map" resultType="map">
+		SELECT HOST_IP,STATUS,CONVERT(VARCHAR,UPDATE_DT,20) as UPDATE_TIME, DATA_SIZE
+		FROM TB_ML_DEPLOY_LOG
+		WHERE DEPLOY_ID=#{DEPLOY_ID}
+		ORDER BY UPDATE_DT DESC
+	</select>
+	
+	<select id="getDeployInfo"  parameterType="map" resultType="map">	
+		SELECT A.LABEL AS SUB_PJT_NM,B.DEPLOY_NAME
+		FROM TB_PROJECT_SUB A JOIN TB_ML_DEPLOY_M B ON A.ID=B.SUB_PJT_ID
+		WHERE A.ID=#{subpjtid} AND B.DEPLOY_ID=#{deployid}
+	</select>
+	
+	<select id="getAPIKey"  parameterType="map" resultType="string">
+		SELECT API_KEY
+		FROM TB_ML_DEPLOY_M
+		WHERE SUB_PJT_ID=#{subpjtid} AND DEPLOY_ID=#{deployid}
+	</select>
+	
+	<select id="getModelId"  parameterType="map" resultType="string">
+		SELECT ID
+		FROM TB_ML_DEPLOY_D
+		WHERE DEPLOY_ID=#{deployid} and MID LIKE 'tr%'
+	</select>
+	
+	<select id="getAPIUrl"  parameterType="map" resultType="string">
+		select CASE WHEN MID='tr001' THEN 'lr/predict/'
+					WHEN MID='tr002' THEN 'logistic/predict/'
+					WHEN MID='tr003' THEN 'knn/predict/'
+					WHEN MID='tr004' THEN 'gnb/predict/'
+					WHEN MID='tr005' THEN 'svm/predict/'
+					WHEN MID='tr006' THEN 'dtc/predict/'
+					WHEN MID='tr007' THEN 'rfc/predict/'
+					WHEN MID='tr008' THEN 'xgbc/predict/'
+					WHEN MID='tr009' THEN 'xgbr/predict/'
+					WHEN MID='tr010' THEN 'kmeans/train/'
+					WHEN MID='tr011' THEN 'dbscan/train/'
+					WHEN MID='tr012' THEN 'arima/predict/'
+					<!-- WHEN MID='tr013' THEN 'lr'
+					WHEN MID='tr014' THEN 'lr'
+					WHEN MID='tr015' THEN 'lr' -->
+					WHEN MID='tr016' THEN 'dtr/predict/'
+					WHEN MID='tr016' THEN 'rfr/predict/'
+				END AS API_URL
+		FROM TB_ML_DEPLOY_D
+		WHERE DEPLOY_ID=#{deployid} and ID=#{modelid}
+	</select>
+	
+	<select id="getFeatures"  parameterType="map" resultType="string">
+		SELECT INPUT_COL
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} and MODEL_UID=#{modelid} and GRID_ID='featureGrid'
+	</select>
+	
+	<select id="getLabel"  parameterType="map" resultType="string">
+		SELECT INPUT_COL
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} and MODEL_UID=#{modelid} and GRID_ID='labelGrid'
+	</select>
+	
+	<!--
+		2021.01.08. 이소라 추가
+		- Deploy Test 시 인코딩 해야 할 컬럼 select
+		  (Trainig 시 인코딩 된 컬럼 리스트) 
+	 -->
+	<select id="getEncodedColumns" parameterType="map" resultType="string">
+		SELECT B.INPUT_COL
+		FROM TB_ML_DEPLOY_D A
+		JOIN TB_ML_CONTROL_COL_PARAM B ON
+			B.SUB_PJT_ID = A.SUB_PJT_ID 
+			AND B.MODEL_UID = A.ID 
+		WHERE A.SUB_PJT_ID = #{subpjtid} 
+			AND A.DEPLOY_ID = #{deployid}
+			AND A.ID = #{id}
+			AND A.MID = 'dm006'
+			AND B.GRID_ID = 'controlGrid'
+	</select>
+	
+	<!--
+		2021.01.08. 이소라 추가
+		- 인코더의 모델 uid select
+	-->
+	<select id="getEncoderModelId" parameterType="map" resultType="string">
+		SELECT A.ID
+		FROM TB_ML_DEPLOY_D A
+		WHERE A.SUB_PJT_ID = #{subpjtid}
+			AND A.DEPLOY_ID = #{deployid}
+			AND A.MID = 'dm006'
+	</select>
+</mapper>

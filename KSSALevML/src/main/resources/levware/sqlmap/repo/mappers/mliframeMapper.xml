@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.MLiframeMapper">
+	
+	<select id="getTableList"  parameterType="map" resultType="map">
+		SELECT TABLE_NAME,OBJ_NAME,OBJ_DESC,ACTIV_YN
+		FROM TB_OBJECT
+		ORDER BY CASE WHEN OBJ_NAME IS NULL THEN 1 ELSE 0 END ASC, OBJ_NAME ASC
+	</select>
+	
+	<select id="getTableColInfo"  parameterType="map" resultType="map">
+		SELECT A.COL_NAME,
+			   A.OBJINFO_DESC,
+			   A.DATA_TYPE
+		FROM TB_OBJINFO A
+		WHERE A.TABLE_NAME = #{TABLE_NAME}
+		ORDER BY CONVERT(INT, SEQ)
+	</select>
+	
+	<select id="getTableData"  parameterType="map" resultType="map">
+		SELECT
+			<foreach collection="list" item="COL_NAME" separator=",">
+				(	
+					${COL_NAME}
+				)	
+			</foreach>
+		FROM ${TABLE_NAME}
+	</select>	
+	
+	<select id="getSQLData" parameterType="map" resultType="map">
+		${sql}
+	</select>
+	
+	<delete id="deleteControlParam" parameterType="map">
+		DELETE FROM TB_ML_CONTROL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} AND MODEL_UID=#{modeluid}
+	</delete>
+	
+	<insert id="insertControlParam" parameterType="map">
+		INSERT INTO TB_ML_CONTROL_PARAM(
+			SUB_PJT_ID,
+			MODEL_UID,
+			PARAM_ID,
+			PARAM_VALUE,
+			CREATE_DT,
+			CREATE_ID,
+			UPDATE_DT,
+			UPDATE_ID
+		)VALUES(
+			#{SUB_PJT_ID},
+			#{MODEL_UID},
+			#{id},
+			#{value},
+			GETDATE(), 
+			#{userid}, 
+			GETDATE(),  
+			#{userid}
+		)
+	</insert>
+	
+	<delete id="deleteControlColParam" parameterType="map">
+		DELETE FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} AND MODEL_UID=#{modeluid} AND GRID_ID=#{gridid}
+	</delete>
+	
+	<insert id="insertControlColParam" parameterType="map">
+		INSERT INTO TB_ML_CONTROL_COL_PARAM(
+			SUB_PJT_ID,
+			MODEL_UID,
+			GRID_ID,
+			INPUT_COL,
+			CREATE_DT,
+			CREATE_ID,
+			UPDATE_DT,
+			UPDATE_ID
+		)VALUES(
+			#{SUB_PJT_ID},
+			#{MODEL_UID},
+			#{GRID_ID},
+			#{INPUT_COL},
+			GETDATE(), 
+			#{userid}, 
+			GETDATE(),  
+			#{userid}
+		)
+	</insert>
+	
+	<select id="getParamColList" parameterType="map" resultType="string">
+		SELECT INPUT_COL
+		FROM TB_ML_CONTROL_COL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} 
+			AND MODEL_UID=(CASE WHEN COALESCE(#{gubun},'ML')='PR' THEN #{modelid} ELSE #{modeluid} END)
+			AND GRID_ID=#{gridid}
+	</select>
+	
+	<select id="getParamList" parameterType="map" resultType="map">
+		SELECT PARAM_ID,PARAM_VALUE
+		FROM TB_ML_CONTROL_PARAM
+		WHERE SUB_PJT_ID=#{subpjtid} AND MODEL_UID=#{modeluid}
+	</select>
+	
+	<delete id="deleteLeftData" parameterType="map">
+		DELETE FROM TB_ML_JOIN_LEFT
+	</delete>
+	
+	<insert id="insertLeftData"  parameterType="map">
+		INSERT INTO TB_ML_JOIN_LEFT(
+			COL0, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10
+		)VALUES
+		<foreach item="item" collection="left_list" open="" separator="," close="">
+		(
+			#{item.COL0}, #{item.COL1}, #{item.COL2}, #{item.COL3}, #{item.COL4}, #{item.COL5}, 
+			#{item.COL6}, #{item.COL7}, #{item.COL8}, #{item.COL9}, #{item.COL10}
+		)
+		</foreach>
+	</insert>
+	
+	<delete id="deleteRightData" parameterType="map">
+		DELETE FROM TB_ML_JOIN_RIGHT
+	</delete>
+	
+	<insert id="insertRightData"  parameterType="map">
+		INSERT INTO TB_ML_JOIN_RIGHT(
+			COL0, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10
+		)VALUES
+		<foreach item="item" collection="right_list" open="" separator="," close="">
+		(
+			#{item.COL0}, #{item.COL1}, #{item.COL2}, #{item.COL3}, #{item.COL4}, #{item.COL5}, 
+			#{item.COL6}, #{item.COL7}, #{item.COL8}, #{item.COL9}, #{item.COL10}
+		)
+		</foreach>
+	</insert>
+	
+	<select id="getJoinData" parameterType="map" resultType="map">
+		SELECT 
+				<foreach item="item" index="index" collection="left_cols" open="" separator="," close="">
+					L.COL${index} as ${item.COL_NAME}_left
+				</foreach>
+				,
+				<foreach item="item" index="index" collection="right_cols" open="" separator="," close="">
+					R.COL${index} as ${item.COL_NAME}_right
+				</foreach>
+		FROM TB_ML_JOIN_LEFT AS L ${jointype} TB_ML_JOIN_RIGHT AS R
+		ON ${joinstr}
+	</select>
+	
+	<delete id="deleteData" parameterType="map">
+		DELETE FROM TB_ML_JOIN_LEFT
+	</delete>
+	
+	<insert id="insertData"  parameterType="map">
+		INSERT INTO TB_ML_JOIN_LEFT(
+			COL0, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10
+		)VALUES
+		<foreach item="item" collection="list" open="" separator="," close="">
+		(
+			#{item.0}, #{item.1}, #{item.2}, #{item.3}, #{item.4}, #{item.5}, 
+			#{item.6}, #{item.7}, #{item.8}, #{item.9}, #{item.10}
+		)
+		</foreach>
+	</insert>
+	
+	<select id="getDistinctData" parameterType="map" resultType="map">
+		SELECT DISTINCT
+				<foreach item="item" index="index" collection="cols" open="" separator="," close="">
+					COL${index} as "${index}" 
+				</foreach>
+		FROM TB_ML_JOIN_LEFT
+	</select>
+	
+	<select id="getSortData" parameterType="map" resultType="map">
+		SELECT 
+				<foreach item="item" index="index" collection="cols" open="" separator="," close="">
+					COL${index} as "${index}" 
+				</foreach>
+		FROM TB_ML_JOIN_LEFT
+		ORDER BY
+			<foreach item="item" index="index" collection="inputcols" open="" separator="," close="">
+				COL${index} 
+			</foreach>
+		${sorttype}
+	</select>
+	
+	<select id="getEncodedLabel" parameterType="map" resultType="int">
+		SELECT ENC_VAL
+		FROM TB_ML_CONTROL_DICTIONARY
+		WHERE SUB_PJT_ID = #{subpjtid} AND VAL=#{val}
+	</select>
+	
+	<select id="getNextEncodeValue" parameterType="map" resultType="int">
+		SELECT COALESCE(A.VAL,B.VAL)
+		FROM
+		(
+			SELECT MAX(ENC_VAL)+1 AS VAL
+			FROM TB_ML_CONTROL_DICTIONARY
+			WHERE SUB_PJT_ID=#{subpjtid}
+		) A, (SELECT 1 AS VAL) B
+	</select>
+	
+	<insert id="insertEncodedLabel"  parameterType="map">
+		INSERT INTO TB_ML_CONTROL_DICTIONARY(
+			SUB_PJT_ID, MODEL_UID, VAL, ENC_VAL, CREATE_ID, CREATE_DT, UPDATE_ID, UPDATE_DT
+		)
+		VALUES(
+			#{subpjtid},#{modeluid},#{val},#{enc_val},#{userid},getdate(),#{userid},getdate()
+		)
+	</insert>
+	
+	<delete id="deleteDummyData" parameterType="map">
+		DELETE FROM TB_ML_CONTROL_DUMMY
+	</delete>
+	
+	<insert id="insertDummyData"  parameterType="map">
+		INSERT INTO TB_ML_CONTROL_DUMMY(
+			COL,ORDNO
+		)VALUES
+		<foreach item="item" collection="dummy_list" open="" separator="," close="">
+		(
+			#{item.VAL},#{item.ORDNO}
+		)
+		</foreach>
+	</insert>
+	
+	<insert id="mergeDictionaryData"  parameterType="map">	
+		insert into TB_ML_CONTROL_DICTIONARY(
+			SUB_PJT_ID,MODEL_UID,VAL,ENC_VAL,CREATE_ID,CREATE_DT,UPDATE_ID,UPDATE_DT
+		)
+		select #{subpjtid},#{modeluid},
+			   COL,
+			   (SELECT COUNT(*) FROM TB_ML_CONTROL_DICTIONARY WHERE SUB_PJT_ID=#{subpjtid})+ROW_NUMBER() OVER(ORDER BY COL) AS ENC_VAL,
+			   #{userid},getdate(),#{userid},getdate()
+		from (SELECT DISTINCT COL FROM TB_ML_CONTROL_DUMMY) A LEFT OUTER JOIN TB_ML_CONTROL_DICTIONARY B ON A.COL=B.VAL AND B.SUB_PJT_ID=#{subpjtid}
+		WHERE B.ENC_VAL IS NULL
+	</insert>
+	
+	<select id="getEncodedValueList" parameterType="map" resultType="string">
+		SELECT B.ENC_VAL
+		FROM TB_ML_CONTROL_DUMMY A JOIN TB_ML_CONTROL_DICTIONARY B ON A.COL=B.VAL
+		WHERE B.SUB_PJT_ID=#{subpjtid}
+		ORDER BY A.ORDNO
+	</select>
+	
+	<select id="getDecodedValueList" parameterType="map" resultType="string">
+		SELECT B.VAL
+		FROM TB_ML_CONTROL_DUMMY A JOIN TB_ML_CONTROL_DICTIONARY B ON A.COL=B.ENC_VAL
+		WHERE B.SUB_PJT_ID=#{subpjtid}
+		ORDER BY A.ORDNO
+	</select>
+	
+	<insert id='insertImageEncodingData' parameterType="map">
+		INSERT INTO TB_ML_IMG_PARAM
+			(SUB_PJT_ID , MODEL_UID , Y , Y_ENC , CREATE_ID , CREATE_DT , UPDATE_ID , UPDATE_DT )
+		SELECT
+			#{subPjtId}, #{modelUid}, #{y},
+				(	SELECT 
+						CASE
+							WHEN MAX(Y_ENC) IS NULL THEN 0 
+							ELSE MAX(Y_ENC)+1
+						END
+					FROM TB_ML_IMG_PARAM AS T1
+					WHERE T1.SUB_PJT_ID = #{subPjtId}
+						AND T1.MODEL_UID = #{modelUid}	),
+			#{userid}, getdate(), #{userid}, getdate()
+		WHERE NOT EXISTS (
+			SELECT Y_ENC
+			FROM TB_ML_IMG_PARAM as T2
+			WHERE T2.SUB_PJT_ID = #{subPjtId}
+				AND T2.MODEL_UID = #{modelUid}
+				AND T2.Y = #{y} )
+	</insert>
+	
+	
+	<select id="selectImageEncodingData" parameterType="map" resultType="string">
+		SELECT Y_ENC
+		FROM TB_ML_IMG_PARAM
+		WHERE SUB_PJT_ID = #{subPjtId}
+			AND MODEL_UID = #{modelUid}
+			AND Y = #{y}
+	</select>
+	
+	<insert id="insertPivotData" parameterType="map">
+		<!-- PIVOT 전용 테이블 생성 고려 -->
+		INSERT TB_ML_JOIN_LEFT (COL1, COL2, COL3)
+		VALUES 
+		<foreach collection="list" item="item" separator=",">
+			(	
+				#{item.row}, #{item.col}, #{item.val}
+			)	
+		</foreach>
+	</insert>
+	
+	<select id="selectPivotData" parameterType="map" resultType="map">
+		SELECT
+			COL1 AS ${data.row}
+			<foreach collection="cols" item="item">
+				, [${item}] AS ${data.col}_${item}
+			</foreach>
+		FROM (
+			SELECT
+				COL1,
+				COL2,
+				CONVERT(DECIMAL, COL3) AS COL3
+			FROM
+				TB_ML_JOIN_LEFT
+		) AS T1
+		PIVOT (
+			SUM(T1.COL3)
+			FOR COL2 IN (
+				<foreach collection="cols" item="item" separator=",">
+					[${item}]
+				</foreach>
+			)
+		) AS T2
+	</select>
+</mapper>

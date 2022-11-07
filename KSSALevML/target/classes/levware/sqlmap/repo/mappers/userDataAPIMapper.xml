@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.levware.common.mappers.repo.RepoUserDataAPIMapper">
+	
+	<!-- 객체 정보 vo -->
+	<resultMap type="ObjectVO" id="ObjectVOMap">
+		<result property="tableName" column="TABLE_NAME" />
+		<result property="objectName" column="OBJ_NAME" />
+		<result property="objectDescription" column="OBJ_DESC" />
+		<result property="iconURL" column="ICON_URL" />
+	</resultMap>
+	
+	<!-- 객체 관계 정보 vo -->
+	<resultMap type="ObjectRelVO" id="ObjectRelVOMap">
+		<result property="stdTable" column="STD_TABLE" />
+		<result property="connTable" column="CONN_TABLE" />
+		<result property="joinExpr" column="JOIN_EXPR" />
+	</resultMap>
+	
+	<!-- 객체 세부 정보 vo -->
+	<resultMap type="ObjectDetailInfoVO" id="ObjectDetailInfoVOMap">
+		<result property="tableName" column="TABLE_NAME" />
+		<result property="colName" column="COL_NAME" />
+		<result property="objInfoName" column="OBJINFO_NAME" />
+		<result property="objInfoNameDesc" column="OBJINFO_DESC" />
+		<result property="dataType" column="DATA_TYPE" />	
+		<result property="pkYn" column="PK_GUBUN" />
+		<result property="qryConYn" column="QRY_CON_YN" />
+		<result property="standDate" column="STAND_DATE" />
+		<result property="durationUnit" column="VIEW_DURATION_UNIT" />
+		<result property="durationNum" column="VIEW_DURATION_NUM" />
+		<result property="calcFuntionYn" column="CALC_FUNC_YN" />
+		
+		
+	</resultMap>
+	
+	<!-- 객체 조건 정보 vo -->
+	<resultMap type="OlapConditionVO" id="CdVOMap">
+		<result property="tableName" column="TABLE_NAME" />
+		<result property="columnName" column="COLUMN_NAME" />
+		<result property="qryConCode" column="QUERY_CON_CODE" />
+		<result property="qryConCodeNm" column="QRY_CON_CD_NM" />
+		<result property="operSym" column="OPER_SYM" />
+	</resultMap>
+	
+	<!-- 저장 목록 VO -->
+	<resultMap type="SavedDataVO" id="SavedMap">
+		<result property="seqNum" column="SAVE_HIST_SEQ" />
+		<result property="userId" column="USER_ID" />
+		<result property="titleText" column="SAVE_HIST_NAME" />
+		<result property="descriptionText" column="SAVE_HIST_TEXT" />
+		<result property="qryStr" column="SAVE_QRY_CON" />
+		<result property="createDt" column="CREATE_DT" />
+		<result property="updateDt" column="UPDATE_DT" />
+	</resultMap>
+
+	
+	<select id="getObjectSelect" resultMap="ObjectVOMap">
+		<!-- SELECT 
+			TABLE_NAME,
+			OBJ_NAME,
+			OBJ_DESC,
+			ICON_URL
+		FROM
+			TB_OBJECT
+		WHERE
+			ACTIV_YN = 'Y'
+		ORDER BY OBJ_NAME 	 -->
+		SELECT * FROM TB_OBJECT
+	</select>
+	
+	
+	<select id="getObjectRelSelect" parameterType="String" resultMap="ObjectRelVOMap">
+		SELECT
+			STD_TABLE,
+			CONN_TABLE,
+			JOIN_EXPR
+		FROM
+			TB_OBJ_REL
+		WHERE
+			STD_TABLE = #{stdTableName}
+	</select>
+	
+	<select id="getObjectDetailInfo" parameterType="String" resultMap="ObjectDetailInfoVOMap">
+		SELECT
+			TABLE_NAME,
+			COL_NAME,
+			OBJINFO_NAME,
+			OBJINFO_DESC,
+			DATA_TYPE,
+			PK_GUBUN,
+			QRY_CON_YN,
+			STAND_DATE,
+			VIEW_DURATION_UNIT,
+			VIEW_DURATION_NUM,
+			CALC_FUNC_YN
+			
+		FROM
+			TB_OBJINFO
+		WHERE
+			<!-- TABLE_NAME = #{tableName} -->
+			TABLE_NAME = 'M_DATA_CNV1'
+			AND 
+			DISPLAY_YN = 'Y'
+		ORDER BY SEQ	
+	
+	</select>
+	
+	
+	<select id="getConditionData" parameterType="String" resultMap="CdVOMap">
+		SELECT
+			TB_OBJINFO_QRY_CON.TABLE_NAME TABLE_NAME,
+			TB_OBJINFO_QRY_CON.COLUMN_NAME COLUMN_NAME,
+			TB_OBJINFO_QRY_CON.QUERY_CON_CODE QUERY_CON_CODE,
+			QRY_CON_CD_NM,
+			OPER_SYM
+		FROM
+			TB_OBJINFO_QRY_CON, TB_QRY_CON_CD, TB_OBJINFO
+		WHERE
+			TB_OBJINFO_QRY_CON.TABLE_NAME = #{tableName}
+		AND 
+			TB_OBJINFO_QRY_CON.QUERY_CON_CODE = TB_QRY_CON_CD.QRY_CON_CD
+    AND
+      TB_OBJINFO_QRY_CON.TABLE_NAME = TB_OBJINFO.TABLE_NAME
+    AND 
+      TB_OBJINFO_QRY_CON.COLUMN_NAME = TB_OBJINFO.COL_NAME
+    AND 
+      TB_OBJINFO.DISPLAY_YN = 'Y'
+	</select>
+	
+	<insert id="logHisInsert" parameterType="String">
+	    	INSERT INTO tb_usr_log_hist 
+	        (
+                USER_ID
+                ,LOGIN_DATE
+                ,LOGIN_TIME
+                ,CREATE_ID
+                ,CREATE_DT
+                ,CREATE_TM
+            )
+		VALUES 
+			(
+                #{USER_ID}
+                ,CONVERT(char(8), GETDATE(), 112) 
+                ,CONVERT(char(8), GETDATE(), 108)
+                ,#{USER_ID} 
+                ,CONVERT(char(8), GETDATE(), 112) 
+                ,CONVERT(char(8), GETDATE(), 108)
+            )    
+	</insert>
+	
+	<select id="getCountUserSaveSeq" parameterType="String" resultType="int">
+		SELECT 
+			ISNULL(MAX(SAVE_HIST_SEQ),0)  AS SAVE_HIST_SEQ 
+		FROM TB_USR_SAVE_LIST 
+		WHERE USER_ID=#{userName}
+	</select>
+	
+	<insert id="insertUserDataset" parameterType="map">
+		INSERT INTO TB_USR_SAVE_LIST
+		(SAVE_HIST_SEQ, USER_ID, SAVE_HIST_NAME, SAVE_HIST_TEXT, SAVE_QRY_CON, CREATE_ID, CREATE_DT, CREATE_TM, UPDATE_ID,UPDATE_DT, UPDATE_TM) VALUES
+		(#{seqCnt}, #{userId}, #{title}, #{description}, #{qryText}, #{userId}, #{createDt}, #{createTm}, #{userId},#{createDt}, #{createTm})
+	</insert>
+		
+	<update id="updateUserDataset" parameterType="map">
+		UPDATE 
+			TB_USR_SAVE_LIST
+		SET 
+			SAVE_HIST_NAME = #{title}, 
+			SAVE_HIST_TEXT = #{description}, 
+			SAVE_QRY_CON = #{qryText},
+			UPDATE_ID = #{userId},
+			UPDATE_DT = #{updateDt},
+			UPDATE_TM = #{updateTm}
+		WHERE
+			SAVE_HIST_SEQ = #{seqCnt} AND
+		 	USER_ID = #{userId}
+	</update>
+	
+	<select id="getUserSavedDataList" parameterType="String" resultMap="SavedMap">
+		SELECT 
+			SAVE_HIST_SEQ,
+			USER_ID,
+			SAVE_HIST_NAME,
+			SAVE_HIST_TEXT,
+			SAVE_QRY_CON,
+			CREATE_DT,
+			UPDATE_DT
+		FROM
+			TB_USR_SAVE_LIST
+		WHERE
+			USER_ID = #{userName}
+		ORDER BY 
+			SAVE_HIST_SEQ DESC
+	</select>
+	
+	
+	<delete id="deleteUserDataset" parameterType="SavedDataDelVO">
+		DELETE 
+		FROM 
+			TB_USR_SAVE_LIST 
+		WHERE
+			SAVE_HIST_SEQ = #{seqNum} 
+		AND
+			USER_ID= #{userName}
+	</delete>
+	
+	<select id="getStandDateCol" parameterType="String" resultType="String">
+		SELECT 
+			COL_NAME
+		FROM
+			TB_OBJINFO
+		WHERE
+			TABLE_NAME = #{tbName01}
+		AND
+			STAND_DATE = 'Y'
+	</select>
+	
+	
+	<select id="getCountQryHistSeq" parameterType="String" resultType="int">
+		SELECT
+			ISNULL(MAX(QRY_HIST_SEQ),0)  AS QRY_HIST_SEQ
+		FROM TB_USR_QRY_HIST
+		WHERE USER_ID=#{userName}
+	</select>
+	
+	<insert id="inserSelectHistory" parameterType="map">
+		INSERT INTO TB_USR_QRY_HIST
+		(QRY_HIST_SEQ, USER_ID, QRY, CREATE_ID, CREATE_DT, CREATE_TM) 
+		VALUES
+		(#{seqNum}, #{userName}, #{qryStr}, #{userName}, #{createDt}, #{createTm})
+	</insert>
+	
+			<!-- 조건 추가 시 셀렉트 리스트 작성자 조형욱 -->
+	<select id="getSelectList" parameterType="map"
+		resultType="map">
+		SELECT DISTINCT ${columnName}
+        FROM ${tableName}
+        ORDER BY ${columnName}
+  
+	</select>
+	
+	
+	<select id="getUnitList" parameterType="String" resultType="map">
+		SELECT DISTINCT GRP_CODE, UNIT_CODE, UNIT_NAME FROM TB_TRANS_UNIT_CODE WHERE GRP_CODE like #{unitParam}
+	</select>
+	
+	<select id="getUnitCalc" parameterType="String" resultType="map">
+		SELECT GRP_CODE, UNIT_CODE, UNIT_NAME, TRANS_CODE, CALC_STR FROM TB_TRANS_UNIT_CODE WHERE GRP_CODE = #{grpParam}
+	</select>
+	
+	
+	<select id="getUnitRelInfo" parameterType="String" resultType="map">
+		SELECT GRP_UNIT, TABLE_NAME, COL_NAME, BASE_COL FROM TB_UNIT_CODE_REL WHERE TABLE_NAME = #{tableName}
+	</select>
+	<!-- TODO oracle 전용 향후 변경해야함 -->
+	<select id="getUnitDyValue" parameterType="String" resultType="map">
+	SELECT * FROM (
+	    	SELECT ${targetColName} FROM ${tbName} WHERE ${uCode}<![CDATA[ <=]]>  #{value} ORDER BY ${targetColName} DESC
+		) WHERE ROWNUM=1
+	</select>
+	
+	
+</mapper>

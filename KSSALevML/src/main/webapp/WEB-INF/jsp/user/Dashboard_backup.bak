@@ -1,0 +1,452 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<link rel="stylesheet" href="<c:url value='/css/user/dashboard.css'/>">
+<script src="<c:url value='/js/user/dashboardDatepickerModule.js'/>"></script>
+<%-- <script src="<c:url value='/js/user/dashboard.js'/>"></script> --%>
+<script src="<c:url value='/js/user/olapDataView.js'/>"></script>
+<script src="<c:url value='/js/user/savedDashboard.js'/>"></script>
+<script src="<c:url value='/js/user/dashboardExcelDownload.js'/>"></script>
+<script src="<c:url value='/js/common/olapHelpMessage/messages/dashboardMsg.js'/>"></script>
+<script src="<c:url value='/js/common/olapHelpMessage/OLAPHelpMessage.js'/>"></script>
+<script>
+$(document).ready(
+	function() {
+	
+		
+		
+		var grid;
+		var datePicker_start_id = "datepicker_start", datePicker_end_id = "datepicker_end";
+        var unit = null;
+        var num = null;
+        
+        // 기간 설정 (이전버전)
+		/* DatepickerModule.create(datePicker_start_id);
+		DatepickerModule.create(datePicker_end_id);
+		DatepickerModule.init(datePicker_start_id,unit);
+		DatepickerModule.init(datePicker_end_id);
+		DatepickerModule.evtBind(datePicker_start_id,datePicker_end_id,unit,num);
+		// date picker
+		$("#datepickerStartBtn").off("click").bind('click',function(e){
+			e.stopPropagation();
+			DatepickerModule.startShow();
+		});
+		$("#datepickerEndBtn").on("click",function(e){
+			e.stopPropagation();
+			DatepickerModule.endShow();
+		}); */
+		
+		
+	/* 	fn_event_bind_condition({
+			conditionId : "conditionAdd",
+			conditionArea : "conditionArea",
+			orderById : "orderbyAdd",
+			orderByArea : "orderbyArea",
+			gridElemId : "objectViewGrid"
+		}); */
+		
+		/* fn_event_bind_reset_btn('conditionAllReset', ExcelDownloadObject.resetDataset); */
+		
+		
+		// init func 추가해야함
+			/* 
+		fn_action_object_list({
+			detailElemId1 : 'objectDetailInfo1',
+			detailElemId2 : 'objectDetailInfo2',
+			datepickerStartId : datePicker_start_id,
+			datepickerEndId : datePicker_end_id
+		}, function() {
+			$("#"+datePicker_start_id).datepicker('reset');
+			$("#"+datePicker_end_id).datepicker('reset');
+			//DatepickerModule.init('datepicker_start');
+			//DatepickerModule.init('datepicker_end');
+		}); // end of fn_action_object_list
+		
+		
+		$("#objectSelectActionBtn").on('click', function(e) {
+			fn_action_select_Action('objectViewGrid',ExcelDownloadObject.datasetInit);
+		});
+		
+		$("#objectAddBtn").on('click', function(e) {
+			$("#objectDisableDiv").hide();
+			$("#objectAddBtn").hide();
+			$("#formControlObjectSelect2").show();
+			$("#objectAddDelBtn").show();
+			$("#objectDetail2").show();
+		});
+		
+		
+		$("#objectAddDelBtn").on('click',function(e) {
+					$("#formControlObjectSelect2").val("notSelected").trigger('change');
+					$("#formControlObjectSelect2").hide();
+					$("#objectAddDelBtn").hide();
+					$("#objectAddBtn").show();
+					$("#objectDetail2").hide();
+					$("#objectDisableDiv").show();
+				});
+		
+		 */
+		 
+		 
+		 
+		 
+		$(".list-group-item").tooltip({ boundary: 'window' });
+		
+		$("#collapseBtn").on('click',function(e){
+			if($(this).find("i").hasClass("fa-angle-up")){
+				$(this).find("span").text("펼치기");
+				$(this).find("i").removeClass("fa-angle-up");
+				$(this).find("i").addClass("fa-angle-down");
+			}else{
+				$(this).find("span").text("숨기기");
+				$(this).find("i").removeClass("fa-angle-down");
+				$(this).find("i").addClass("fa-angle-up");
+			}
+		});
+		
+		SavedUserDataList.loadAction("objectSavedViewGrid");
+		ExcelDownloadObject.onClickEvt("dashboardExcelDown","saveTitle", userDataset.resultDataset);
+		HelpMsgAction.creathHelpBtn("dashboard","helpIcon",OLAPDashboardHelpMsg);
+		$("#dashboardSave").on("click",function(){
+			confirm({
+				message:'<p class="text-center">검색한 정보를 저장하시겠습니까?</p>',
+						title:'<h6>저장하기</h6>',
+						buttons :{
+						  confirm: {
+						         label: '확인',
+						         className: 'btn btn-sm btn-primary'
+						     },
+						     cancel: {
+						         label: '취소',
+						         className: 'btn btn-sm  btn-secondary'
+						     }
+						  },
+			},function(result){
+				if(result){
+					if(SavedUserDataList.Saved_Dashboard_Config.seqNum !== null){
+						var _confirmSaveDataset = $('#savedData-sequence-'+SavedUserDataList.Saved_Dashboard_Config.seqNum).parent().parent().data("JSGridItem");
+						var _msg = "기존에 선택한 저장정보에 덮어쓰겠습니까?";
+						if(_confirmSaveDataset.hasOwnProperty("titleText") && _confirmSaveDataset.titleText !== ""){
+							_msg = "''"+_confirmSaveDataset.titleText+"' 저장정보에 덮어쓰겠습니까?"
+						}
+						
+						var seqNumber = Number(SavedUserDataList.Saved_Dashboard_Config.seqNum);
+						if(_confirmSaveDataset.hasOwnProperty("seqNum")){
+							seqNumber = _confirmSaveDataset.seqNum;
+						}
+						confirm({
+							message : _msg, // 메시지(필수)
+							title:'<h6>저장하기</h6>',
+							 buttons: {						// 버튼 스타일 (선택)
+						        confirm: {label: '예',className: 'btn btn-sm btn-primary'},
+						        cancel: {label: '아니오',className: 'btn btn-sm btn-warning'}
+						    }
+						},function(result){
+									if(result){
+										SavedUserDataList.saveAction({
+											title:$("#saveTitle").val(),
+											description:$("#saveDescription").val(),
+											seqNum:seqNumber
+										},fn_refect_userSelected_dataset);	
+									}else{
+										console.log(_confirmSaveDataset.titleText,$("#saveTitle").val());
+										console.log(_confirmSaveDataset.titleText === $("#saveTitle").val());
+										if(_confirmSaveDataset.titleText === $("#saveTitle").val()){
+											alert("동일한 제목은 저장할 수 없습니다.");
+										}else{
+											SavedUserDataList.saveAction({
+												title:$("#saveTitle").val(),
+												description:$("#saveDescription").val()
+												
+											},fn_refect_userSelected_dataset);
+										}
+									}
+						});
+					}else{
+						SavedUserDataList.saveAction({
+							title:$("#saveTitle").val(),
+							description:$("#saveDescription").val()
+						},fn_refect_userSelected_dataset);	
+					}
+				}
+			});	
+			
+		
+		});
+	});
+</script>
+
+
+<div class="container-fluid">
+	<div class="row">
+		<div id="searchArea" class="top-search-div collapse show mt-3">
+			<div class="col-12">
+				<div class="row">
+					<!-- <div class="col-lg-4 col-xl-3">
+						<div class="card custom-search-card-div">
+							<div class="card-body object-select-card-body">
+								<div class="card-title">
+									<div class="row">
+										<div class="col">
+											<p class="h5">
+												<i class="fas fa-search"></i> <strong>정보객체 선택</strong>
+											</p>
+										</div>
+
+									</div>
+
+								</div>
+								<div class="row">
+									<div class="col-12 mt-4 mb-3">
+										<div class="form-group">
+											<select class="form-control form-control-sm"
+												data-width="200px" id="formControlObjectSelect1">
+												<option value='notSelected'>- 선택하십시오 -</option>
+											</select>
+										</div>
+										<div class="mt-3 card">
+											<div id="objectDetailName1"
+												class="text-center obj-detailname-title"></div>
+											<form id="objectDetailInfo1" class="custom-scroll-div">
+											</form>
+										</div>
+
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div> -->
+					<!-- <div class="col-lg-8 col-xl-5 mt-xs-3 mt-sm-3 mt-md-3 mt-lg-0">
+						<div class="card custom-search-card-div">
+							조회조건
+							<div class="card-title custom-condition-title">
+								<div class="row">
+									<div class="col-5">
+										<div class="mt-3 ml-3">
+											<p class="h5">
+												<i class="fas fa-search"></i> <strong>조회 조건</strong>
+											</p>
+										</div>
+									</div>
+									<div class="col-7">
+										<div class="mt-3 mr-3 text-right">
+											<button id="conditionAllReset" type="button"
+												class="btn btn-sm btn-primary">
+												리셋 <i class="fas fa-redo"></i>
+											</button>
+											<button id="objectSelectActionBtn" type="button"
+												class="btn btn-sm btn-primary">
+												조회 <i class="fas fa-search"></i>
+											</button>
+										</div>
+									</div>
+									<div class="col-12">
+										<small class="text-muted custom-small-font pl-3">조회
+											기간은 최대 <span id="durationUnit">1년</span>까지 입니다.
+										</small>
+									</div>
+								</div>
+							</div>
+							<div class="pt-1 card-body mt-3">
+								<div class="row">
+									<div class="col-12 object-select-card-body">
+									기간 설정 ( 이전버전용 )
+										 <div class="row align-items-center">
+											<div class="col-2 text-center">
+												<span class="font-weight-bold">기간</span>
+											</div>
+											<div class="col">
+												<div class="input-group">
+													<input id="datepicker_start" readonly
+														class="form-control form-control-sm" type="text"
+														data-toggle="datepicker"> <span
+														class="input-group-append">
+														<button id="datepickerStartBtn"
+															class="btn btn-sm btn-outline-secondary border-left-0 custom-datepicker-icon">
+															<i class="fa fa-calendar"></i>
+														</button>
+													</span>
+												</div>
+											</div>
+											<div class="w-10">
+												<span>~</span>
+											</div>
+											<div class="col">
+												<div class="input-group">
+													<input id="datepicker_end" readonly
+														class="form-control form-control-sm" type="text"
+														data-toggle="datepicker" data-placement="bottom">
+													<span class="input-group-append">
+														<button id="datepickerEndBtn"
+															class="btn btn-sm btn-outline-secondary border-left-0 custom-datepicker-icon">
+															<i class="fa fa-calendar"></i>
+														</button>
+													</span>
+												</div>
+											</div>
+										</div> 
+									</div>
+									<div class="col-2 mt-3 condition-div-btn-locate">
+										<button id="conditionAdd" type="button"
+											class="btn custom-btn-condition-div custom-btn-condition-color"
+											disabled>
+											<i class="fa fa-search-plus" aria-hidden="true"></i> <br>
+											조건<br>추가
+										</button>
+									</div>
+									<div class="col-10 mt-3">
+										<div class="card">
+											<div class="object-select-card-body">
+												<div class="card-body" style="padding: 10px 0 0 10px;">
+													<div id="conditionArea" class="scroll-height-fix-two"
+														style="height: 120px;">
+														<div class="custom-none-div custom-none-condition-div">
+															<p class="div-shadow-text text-center">
+																조건을 추가하려면<br> [조건추가]버튼을 클릭하십시오.
+															</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									
+								
+					
+
+									 <div class="col-2 mt-3 orderby-div-btn-locate">
+										<button id="orderbyAdd" type="button"
+											class="btn custom-btn-condition-div custom-btn-condition-color"
+											disabled>
+											<i class="fa fa-search-plus" aria-hidden="true"></i> <br>
+											정렬<br>추가
+										</button>
+									</div>
+									<div class="col-10 mt-3 mb-3">
+										<div class="card">
+											<div class="object-select-card-body">
+												<div class="card-body" style="padding: 4px 0 0 10px;">
+													<div id="orderbyArea" class="scroll-height-fix-two"
+														style="height: 81px;">
+														<div class="custom-none-div custom-none-orderby-div">
+															<p class="div-shadow-text text-center">
+																정렬을 추가하려면 항목을 선택 후<br> [정렬추가]버튼을 클릭하십시오.
+															</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div> 
+								</div>
+
+							</div>
+
+						</div>
+					</div> -->
+					
+					<!-- 리뉴얼 버전 -->
+					 <div class="col-lg-12 col-xl-8 mt-xs-9 mt-sm-9 mt-md-9 mt-lg-0">
+					 	<div class="card custom-search-card-div">
+					 		<div class="mt-3 ml-3">
+								<p class="h5">
+									<i class="fas fa-search"></i> <strong>조회 조건</strong> <button class="btn btn-sm btn-primary">추가</button>
+								</p>
+							</div>
+							
+							
+					 	</div>
+					 </div>
+					
+					<div class="col-lg-12 col-xl-4 mt-xs-3 mt-sm-3 mt-md-3 mt-lg-3 mt-xl-0">
+						<div class="card custom-search-card-div">
+							<div class="card-body custom-right-div">
+								<div class="row">
+									<div class="col-5">
+										<div class="mt-3 ml-3">
+											<p class="h5">
+												<i class="fas fa-save"></i> <strong>저장 목록</strong>
+											</p>
+										</div>
+									</div>
+									<div class="col-12 ">
+										<div class="saved-list-div">
+											<div id="objectSavedViewGrid"></div>
+										</div>
+									</div>
+
+									<div class="col-12">
+										<div id="externalSavedPager"></div>
+									</div>
+									<div>
+									<button id="dashboardSave" type="button" class="btn btn-sm cutom-btn-outline-savebtn custom-save-dashboard-btn" data-target="#saveConfirmModal">
+										현재 조건 저장하기 <i class="far fa-save"></i>
+									</button>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="col-12 text-right custom-show-hide-div mt-3">
+			<a id="collapseBtn"
+				class="btn btn-sm btn-primary custom-show-hide-btn"
+				data-toggle="collapse" data-target="#searchArea"> <span>숨기기</span>
+				<i class="fa fa-angle-up" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
+
+
+	<div class="row">
+		<div class="col-12 mt-0">
+			<div class="d-flex flex-column flex-md-row">
+				<div class="h5 p-2 custom-responsive-p2">
+					<strong>문서제목</strong>
+				</div>
+				<div class="pt-2 custom-responsive-p2">
+					<input id="saveTitle" type="text"
+						class="form-control form-control-sm" placeholder="저장할 제목 표시"
+						maxlength="20">
+				</div>
+				<div class="pt-2 custom-responsive-p2 flex-grow-1">
+					<input id="saveDescription" type="text"
+						class="form-control form-control-sm" placeholder="상세 설명"
+						maxlength="100">
+				</div>
+				<div class="pt-2 custom-responsive-p2">
+					<button id="dashboardExcelDown" type="button"
+						class="btn btn-sm cutom-btn-outline-lagoon">
+						엑셀다운로드 <i class="far fa-file-excel"></i>
+					</button>
+					<button id="dashboardSave" type="button"
+						class="btn btn-sm cutom-btn-outline-savebtn"
+						data-target="#saveConfirmModal">
+						저장하기 <i class="far fa-save"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 mt-1 mb-3">
+			<div class="row">
+				<div class="col-12">
+					<div id="objectViewGrid"></div>
+				</div>
+				<div class="col-12">
+					<div class="row">
+						<div class="col-12">
+							<div id="externalPager"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>

@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.levware.common.mappers.repo.LibraryMapper">
+
+	<!-- 자료실 정보 저장 -->
+	<insert id="savLibrary" parameterType="map">
+		INSERT INTO TB_REF_DATA(
+			FOLDER_ID
+			,REF_ID
+			,REF_NM
+			,DOC_NO
+			,REVI_LEV
+			,CRE_DT
+			,ACC_USF_YN
+			,ACC_SCH_YN
+			,ACC_SAV_YN
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,REF_TYPE
+			,KEYWORD_1
+			,KEYWORD_2
+			,KEYWORD_3
+			,KEYWORD_4
+			,KEYWORD_5
+			,KEYWORD_6
+			,KEYWORD_7
+			,KEYWORD_8
+			,KEYWORD_9
+			,KEYWORD_10
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{FOLDER_ID}
+			,#{REF_ID}
+			,#{REF_NM}
+			,#{DOC_NO}
+			,#{REVI_LEV}
+			,#{CRE_DT}
+			,#{ACC_USF_YN}
+			,#{ACC_SCH_YN}
+			,#{ACC_SAV_YN}
+			,#{file_path, jdbcType=VARCHAR}
+			,#{file_name_org, jdbcType=VARCHAR}
+			,#{file_size, jdbcType=VARCHAR}
+			,#{file_name, jdbcType=VARCHAR}
+			,#{file_ext, jdbcType=VARCHAR}
+			,#{REF_TYPE}
+			,#{KEYWORD_1}
+			,#{KEYWORD_2}
+			,#{KEYWORD_3}
+			,#{KEYWORD_4}
+			,#{KEYWORD_5}
+			,#{KEYWORD_6}
+			,#{KEYWORD_7}
+			,#{KEYWORD_8}
+			,#{KEYWORD_9}
+			,#{KEYWORD_10}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert> 
+	
+	<!-- 자료실 조회 -->
+	<select id="getLibraryList" parameterType="map" resultType="map">
+		SELECT
+			FOLDER_ID
+			,REF_ID
+			,REF_NM
+			,DOC_NO
+			,REVI_LEV
+			,CONVERT(CHAR(10), CRE_DT, 112) AS CRE_DT
+			,ACC_USF_YN
+			,ACC_SCH_YN
+			,ACC_SAV_YN
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,REF_TYPE
+			,KEYWORD_1
+			,KEYWORD_2
+			,KEYWORD_3
+			,KEYWORD_4
+			,KEYWORD_5
+			,KEYWORD_6 
+			,KEYWORD_7 
+			,KEYWORD_8 
+			,KEYWORD_9 
+			,KEYWORD_10
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_REF_DATA
+		<where>
+			<if test='FOLDER_ID != "" and FOLDER_ID != null '>AND UPPER(FOLDER_ID) = #{FOLDER_ID}</if>
+			<if test='REF_NM != "" and REF_NM != null '>AND UPPER(REF_NM) LIKE UPPER('%'+#{REF_NM}+'%')</if>
+		</where>
+	</select>		
+	
+	<!-- 키워드 검색 -->
+	<select id="getKeySchList" parameterType="map" resultType="map">
+		SELECT
+			FOLDER_ID
+			,REF_ID
+			,REF_NM
+			,DOC_NO
+			,REVI_LEV
+			,CONVERT(CHAR(10), CRE_DT, 112) AS CRE_DT
+			,ACC_USF_YN
+			,ACC_SCH_YN
+			,ACC_SAV_YN
+			,FILE_PATH
+			,FILE_ORG_NM
+			,FILE_SIZE
+			,FILE_NM
+			,FILE_EXT
+			,REF_TYPE
+			,KEYWORD_1
+			,KEYWORD_2
+			,KEYWORD_3
+			,KEYWORD_4
+			,KEYWORD_5
+			,KEYWORD_6 
+			,KEYWORD_7 
+			,KEYWORD_8 
+			,KEYWORD_9 
+			,KEYWORD_10
+			,CONVERT(CHAR(10), REG_DT, 112) AS REG_DT
+			,REG_ID
+			,CONVERT(CHAR(10), MOD_DT, 112) AS MOD_DT
+			,MOD_ID
+		FROM TB_REF_DATA
+		<where>
+			<if test='FOLDER_ID != "" and FOLDER_ID != null '>AND UPPER(FOLDER_ID) = #{FOLDER_ID}</if>
+			<if test='REF_NM != "" and REF_NM != null '>AND UPPER(#{REF_NM}) IN (KEYWORD_1,KEYWORD_2,KEYWORD_3,KEYWORD_4,KEYWORD_5,KEYWORD_6,KEYWORD_7,KEYWORD_8,KEYWORD_9,KEYWORD_10)</if>
+		</where>
+		ORDER BY REF_NM
+	</select>		
+
+	<!-- 자료실 삭제 -->
+	<delete id="delLibrary" parameterType="map">
+		DELETE FROM TB_REF_DATA
+		WHERE REF_ID = #{REF_ID}
+	</delete>
+	
+	<!-- 자료실 수정 -->
+	<update id="editLibrary" parameterType="map">
+		UPDATE TB_REF_DATA
+		SET REF_NM=#{REF_NM}
+			,DOC_NO=#{DOC_NO}
+			,REVI_LEV=#{REVI_LEV}
+			,CRE_DT=#{CRE_DT}
+			,ACC_USF_YN=#{ACC_USF_YN}
+			,ACC_SCH_YN=#{ACC_SCH_YN}
+			,ACC_SAV_YN=#{ACC_SAV_YN}
+			,KEYWORD_1=#{KEYWORD_1}
+			,KEYWORD_2=#{KEYWORD_2}
+			,KEYWORD_3=#{KEYWORD_3}
+			,KEYWORD_4=#{KEYWORD_4}
+			,KEYWORD_5=#{KEYWORD_5}
+			,KEYWORD_6=#{KEYWORD_6}
+			,KEYWORD_7=#{KEYWORD_7}
+			,KEYWORD_8=#{KEYWORD_8}
+			,KEYWORD_9=#{KEYWORD_9}
+			,KEYWORD_10=#{KEYWORD_10}
+			<if test='file_path != null and file_path != ""' >, FILE_PATH=#{file_path} </if>
+			<if test='file_name_org != null and file_name_org != ""' >, FILE_ORG_NM=#{file_name_org} </if>
+			<if test='file_name != null and file_name != ""' >, FILE_NM=#{file_name} </if>
+			<if test='file_size != null and file_size != ""' >, FILE_SIZE=#{file_size} </if>
+			<if test='file_ext != null and file_ext != ""' >, FILE_EXT=#{file_ext} </if>
+			,MOD_DT=GETDATE() 
+			,MOD_ID=#{USER_ID}
+		WHERE REF_ID=#{REF_ID}
+	</update>
+	
+	<!-- 자료실 tree 조회 -->
+	<select id="searchDocTree" parameterType="map" resultType="map">
+		SELECT 
+			FOLDER_ID 
+			,P_ID
+			,FOLDER_NM 
+		FROM TB_REF_FOLDER
+		ORDER BY FOLDER_ID
+	</select>			
+
+	<!-- 자료실 tree 저장 -->
+	<insert id="savDocTree" parameterType="map">
+		INSERT INTO TB_REF_FOLDER(
+			FOLDER_ID
+			,P_ID
+			,FOLDER_NM
+			,REG_DT
+			,REG_ID
+			,MOD_DT
+			,MOD_ID
+		) VALUES (
+			#{FOLDER_ID}
+			,#{P_ID}
+			,#{FOLDER_NM}
+			,GETDATE()
+			,#{USER_ID}
+			,GETDATE()
+			,#{USER_ID}
+		)
+	</insert> 	
+	
+	<!-- 자료실 tree 수정 -->
+	<update id="editDocTree" parameterType="map">
+		UPDATE TB_REF_FOLDER
+		SET FOLDER_NM = #{FOLDER_NM}
+			,MOD_DT = GETDATE() 
+			,MOD_ID = #{USER_ID}
+		WHERE FOLDER_ID = #{FOLDER_ID}
+	</update>	
+	
+	<!-- 자료실 tree 삭제 -->
+	<delete id="delDocTree" parameterType="map">
+		DELETE FROM TB_REF_FOLDER
+		WHERE FOLDER_ID = #{FOLDER_ID}
+	</delete>
+	
+	<select id="delDocSch" parameterType="map" resultType="map">
+		SELECT
+			FILE_PATH
+			,FILE_NM
+		FROM TB_REF_DATA
+		WHERE FOLDER_ID = #{FOLDER_ID}
+	</select>	
+	
+	<delete id="delDocLibrary" parameterType="map">
+		DELETE FROM TB_REF_DATA
+		WHERE FOLDER_ID = #{FOLDER_ID}
+	</delete>
+	
+	<!-- 폴더이동 붙여넣기 -->
+	<update id="dataPaste" parameterType="map">
+		UPDATE TB_REF_DATA
+		SET FOLDER_ID=#{FOLDER_ID}
+			,MOD_DT=GETDATE() 
+			,MOD_ID=#{USER_ID}
+		WHERE REF_ID=#{REF_ID}
+	</update>	
+	
+	<!-- 자료실 tree 하위폴더 조회 -->
+	<select id="getSubfolderYn" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(FOLDER_ID)
+		FROM TB_REF_FOLDER
+		WHERE P_ID = #{FOLDER_ID}
+	</select>	
+	
+	<!-- 문서번호가 동일한데 파일명 다른 경우 (등록진행불가) -->
+	<select id="confFirst" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(REF_ID)
+		FROM TB_REF_DATA
+		WHERE DOC_NO = #{DOC_NO} AND REF_NM != #{REF_NM} AND DOC_NO != ''
+			<if test='REF_ID != "" and REF_ID != null '>AND REF_ID != #{REF_ID}</if>
+	</select>
+	<!-- 파일명이 동일한데 문서번호가 다른 경우 (확인후 등록은 가능) -->
+	<select id="confSecond" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(REF_ID)
+		FROM TB_REF_DATA
+		WHERE DOC_NO != #{DOC_NO} AND REF_NM = #{REF_NM}
+			<if test='REF_ID != "" and REF_ID != null '>AND REF_ID != #{REF_ID}</if>
+	</select>
+	<!-- 문서번호와 파일명이 동일한 경우 (작성일 & 레벨이 달라야 등록) -->
+	<select id="confThird" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(REF_ID)
+		FROM TB_REF_DATA
+		WHERE DOC_NO = #{DOC_NO} AND REF_NM = #{REF_NM} AND (CRE_DT = #{CRE_DT} OR REVI_LEV = #{REVI_LEV})
+			 AND DOC_NO != ''
+			 <if test='REF_ID != "" and REF_ID != null '>AND REF_ID != #{REF_ID}</if>
+	</select>
+	
+	<!-- 전체 검색 -->
+	<select id="getAllData" parameterType="map" resultType="map">
+		WITH tree_query AS ( 
+			SELECT FOLDER_ID 
+				, P_ID 
+				, FOLDER_NM 
+				, convert(varchar(255), FOLDER_ID) sort 
+				, convert(varchar(255), FOLDER_NM) depth_fullname 
+			FROM TB_REF_FOLDER WHERE P_ID = '0' 
+			UNION ALL 
+			SELECT B.FOLDER_ID 
+				, B.P_ID 
+				, B.FOLDER_NM 
+				, convert(varchar(255), convert(nvarchar,C.sort)+'/'+convert(varchar(255), B.FOLDER_ID)) sort 
+				, convert(varchar(255), convert(nvarchar,C.depth_fullname)+'/'+convert(varchar(255), B.FOLDER_NM)) depth_fullname 
+			FROM TB_REF_FOLDER B, tree_query C 
+			WHERE B.P_ID = C.FOLDER_ID 
+		) SELECT 
+			A.FOLDER_ID
+			,B.FOLDER_NM
+			,A.REF_ID
+			,A.REF_NM
+			,A.DOC_NO
+			,A.REVI_LEV
+			,CONVERT(CHAR(10), A.CRE_DT, 112) AS CRE_DT
+			,A.ACC_USF_YN
+			,A.ACC_SCH_YN
+			,A.ACC_SAV_YN
+			,A.FILE_PATH
+			,A.FILE_ORG_NM
+			,A.FILE_SIZE
+			,A.FILE_NM
+			,A.FILE_EXT
+			,A.REF_TYPE
+			,A.KEYWORD_1
+			,A.KEYWORD_2
+			,A.KEYWORD_3
+			,A.KEYWORD_4
+			,A.KEYWORD_5
+			,A.KEYWORD_6 
+			,A.KEYWORD_7 
+			,A.KEYWORD_8 
+			,A.KEYWORD_9 
+			,A.KEYWORD_10
+			,CONVERT(CHAR(10), A.REG_DT, 112) AS REG_DT
+			,A.REG_ID
+			,CONVERT(CHAR(10), A.MOD_DT, 112) AS MOD_DT
+			,A.MOD_ID
+			, C.FOLDER_ID
+			, C.depth_fullname 
+		FROM TB_REF_DATA A 
+		JOIN TB_REF_FOLDER B ON A.FOLDER_ID = B.FOLDER_ID LEFT OUTER JOIN tree_query C ON A.FOLDER_ID = C.FOLDER_ID
+		<where>
+			<if test='REF_NM != "" and REF_NM != null '>AND UPPER(REF_NM) LIKE UPPER('%'+#{REF_NM}+'%')</if>
+		</where>
+		ORDER BY A.REF_NM
+	</select>
+	
+	<!-- 전체 키워드 검색 -->
+	<select id="getKeyAllData" parameterType="map" resultType="map">
+		WITH tree_query AS ( 
+			SELECT FOLDER_ID 
+				, P_ID 
+				, FOLDER_NM 
+				, convert(varchar(255), FOLDER_ID) sort 
+				, convert(varchar(255), FOLDER_NM) depth_fullname 
+			FROM TB_REF_FOLDER WHERE P_ID = '0' 
+			UNION ALL 
+			SELECT B.FOLDER_ID 
+				, B.P_ID 
+				, B.FOLDER_NM 
+				, convert(varchar(255), convert(nvarchar,C.sort)+'/'+convert(varchar(255), B.FOLDER_ID)) sort 
+				, convert(varchar(255), convert(nvarchar,C.depth_fullname)+'/'+convert(varchar(255), B.FOLDER_NM)) depth_fullname 
+			FROM TB_REF_FOLDER B, tree_query C 
+			WHERE B.P_ID = C.FOLDER_ID 
+		) SELECT 
+			A.FOLDER_ID
+			,B.FOLDER_NM
+			,A.REF_ID
+			,A.REF_NM
+			,A.DOC_NO
+			,A.REVI_LEV
+			,CONVERT(CHAR(10), A.CRE_DT, 112) AS CRE_DT
+			,A.ACC_USF_YN
+			,A.ACC_SCH_YN
+			,A.ACC_SAV_YN
+			,A.FILE_PATH
+			,A.FILE_ORG_NM
+			,A.FILE_SIZE
+			,A.FILE_NM
+			,A.FILE_EXT
+			,A.REF_TYPE
+			,A.KEYWORD_1
+			,A.KEYWORD_2
+			,A.KEYWORD_3
+			,A.KEYWORD_4
+			,A.KEYWORD_5
+			,A.KEYWORD_6 
+			,A.KEYWORD_7 
+			,A.KEYWORD_8 
+			,A.KEYWORD_9 
+			,A.KEYWORD_10
+			,CONVERT(CHAR(10), A.REG_DT, 112) AS REG_DT
+			,A.REG_ID
+			,CONVERT(CHAR(10), A.MOD_DT, 112) AS MOD_DT
+			,A.MOD_ID
+			, C.FOLDER_ID
+			, C.depth_fullname 
+		FROM TB_REF_DATA A 
+		JOIN TB_REF_FOLDER B ON A.FOLDER_ID = B.FOLDER_ID LEFT OUTER JOIN tree_query C ON A.FOLDER_ID = C.FOLDER_ID
+		<where>
+			<if test='REF_NM != "" and REF_NM != null '>AND UPPER(#{REF_NM}) IN (A.KEYWORD_1,A.KEYWORD_2,A.KEYWORD_3,A.KEYWORD_4,A.KEYWORD_5,A.KEYWORD_6,A.KEYWORD_7,A.KEYWORD_8,A.KEYWORD_9,A.KEYWORD_10)</if>
+		</where>
+	</select>		
+</mapper>
